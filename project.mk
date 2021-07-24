@@ -13,7 +13,7 @@ VERSION := 0
 # GAMEID := BOIL
 
 # Game title, up to 11 ASCII chars
-TITLE := BOMB GOLF
+TITLE := "BOMB GOLF"
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!

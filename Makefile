@@ -38,6 +38,12 @@ RGBLINK := $(RGBDS)rgblink
 RGBFIX  := $(RGBDS)rgbfix
 RGBGFX  := $(RGBDS)rgbgfx
 
+# We depend on SuperFamiConv to generate tilemaps
+SUPERFAMICONV  := superfamiconv
+
+# Also tmxrasterizer (part of Tiled) to generate the PNG maps that SuperFamiConv takes
+TMXRASTERIZER  := tmxrasterizer
+
 ROM = $(BINDIR)/$(ROMNAME).$(ROMEXT)
 
 # Argument constants
@@ -110,6 +116,11 @@ $(RESDIR)/%.1bpp: $(RESDIR)/%.png
 	@$(MKDIR_P) $(@D)
 	$(RGBGFX) -d 1 -o $@ $<
 
+# make 2bpp tiles using RGBGFX
+$(RESDIR)/%.2bpp: $(RESDIR)/%.png
+	@$(MKDIR_P) $(@D)
+	$(RGBGFX) -o $@ $<
+
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
 $(RESDIR)/%.pb16: $(RESDIR)/% $(SRCDIR)/tools/pb16.py
@@ -129,6 +140,15 @@ $(RESDIR)/%.pb8: $(RESDIR)/% $(SRCDIR)/tools/pb8.py
 $(RESDIR)/%.pb8.size: $(RESDIR)/%
 	@$(MKDIR_P) $(@D)
 	$(call filesize,$<,8) > $(RESDIR)/$*.pb8.size
+
+# define how to generate tilemaps for courses using the golf course tileset. Requires Tiled and superfamiconv.
+$(RESDIR)/%.golftilemap: $(RESDIR)/%.tmx $(RESDIR)/golfassets.2bpp $(RESDIR)/bgpalette.pal
+	@$(MKDIR_P) $(@D)
+	$(TMXRASTERIZER) $< $(RESDIR)/$*.png
+# this assumes that the golf tiles will be copied to $8800
+	$(SUPERFAMICONV) map -M gb -T 128 -i $(RESDIR)/$*.png -p $(word 3,$^) -t $(word 2,$^) -d $@
+
+	
 
 ###############################################
 #                                             #
