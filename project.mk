@@ -10,10 +10,10 @@ PADVALUE := 0xFF
 VERSION := 0
 
 # 4-ASCII letter game ID
-GAMEID := BOIL
+# GAMEID := BOIL
 
 # Game title, up to 11 ASCII chars
-TITLE := BOILERPLATE
+TITLE := BOMB GOLF
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!
@@ -57,10 +57,10 @@ ASFLAGS += -h
 # FIXFLAGS += -s
 
 # Game Boy mode
-# LDFLAGS += -d
+LDFLAGS += -d
 
 # No banked WRAM mode
 # LDFLAGS += -w
 
 # 32k mode
-# LDFLAGS += -t
+LDFLAGS += -t
