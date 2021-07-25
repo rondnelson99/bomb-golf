@@ -10,19 +10,15 @@
    <wangtile tileid="5" wangid="0,2,0,1,0,1,0,2"/>
    <wangtile tileid="6" wangid="0,2,0,1,0,1,0,2"/>
    <wangtile tileid="7" wangid="0,2,0,2,0,1,0,2"/>
-   <wangtile tileid="8" wangid="0,3,0,2,0,2,0,2"/>
-   <wangtile tileid="9" wangid="0,3,0,2,0,2,0,3"/>
+   <wangtile tileid="8" wangid="0,1,0,1,0,1,0,1"/>
    <wangtile tileid="14" wangid="0,1,0,1,0,2,0,2"/>
    <wangtile tileid="15" wangid="0,1,0,2,0,1,0,1"/>
    <wangtile tileid="16" wangid="0,1,0,1,0,2,0,1"/>
    <wangtile tileid="17" wangid="0,2,0,2,0,1,0,1"/>
-   <wangtile tileid="18" wangid="0,2,0,2,0,2,0,3"/>
-   <wangtile tileid="19" wangid="0,3,0,3,0,3,0,3"/>
    <wangtile tileid="24" wangid="0,1,0,1,0,2,0,2"/>
    <wangtile tileid="25" wangid="0,2,0,1,0,1,0,1"/>
    <wangtile tileid="26" wangid="0,1,0,1,0,1,0,2"/>
    <wangtile tileid="27" wangid="0,2,0,2,0,1,0,1"/>
-   <wangtile tileid="28" wangid="0,1,0,1,0,1,0,1"/>
    <wangtile tileid="34" wangid="0,1,0,2,0,2,0,2"/>
    <wangtile tileid="35" wangid="0,1,0,2,0,2,0,1"/>
    <wangtile tileid="36" wangid="0,1,0,2,0,2,0,1"/>
@@ -42,7 +38,7 @@
    <wangtile tileid="58" wangid="0,3,0,2,0,2,0,3"/>
    <wangtile tileid="59" wangid="0,2,0,2,0,3,0,3"/>
   </wangset>
-  <wangset name="water interior" type="edge" tile="-1">
+  <wangset name="water interior" type="mixed" tile="-1">
    <wangcolor name="" color="#ff0000" tile="-1" probability="1"/>
    <wangcolor name="" color="#00ff00" tile="-1" probability="1"/>
    <wangcolor name="" color="#0000ff" tile="-1" probability="1"/>
@@ -51,10 +47,11 @@
    <wangcolor name="" color="#ff00d8" tile="-1" probability="1"/>
    <wangcolor name="" color="#ffff00" tile="-1" probability="1"/>
    <wangcolor name="" color="#a000ff" tile="-1" probability="1"/>
-   <wangtile tileid="28" wangid="7,0,1,0,6,0,2,0"/>
-   <wangtile tileid="29" wangid="8,0,2,0,5,0,1,0"/>
-   <wangtile tileid="38" wangid="6,0,3,0,7,0,4,0"/>
-   <wangtile tileid="39" wangid="5,0,4,0,8,0,3,0"/>
+   <wangcolor name="water" color="#00ffa1" tile="-1" probability="1"/>
+   <wangtile tileid="8" wangid="7,9,1,9,6,9,2,9"/>
+   <wangtile tileid="9" wangid="8,9,2,9,5,9,1,9"/>
+   <wangtile tileid="18" wangid="6,9,3,9,7,9,4,9"/>
+   <wangtile tileid="19" wangid="5,9,4,9,8,9,3,9"/>
   </wangset>
  </wangsets>
 </tileset>
