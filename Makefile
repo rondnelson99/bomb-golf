@@ -146,7 +146,7 @@ $(RESDIR)/%.golftilemap: $(RESDIR)/%.tmx $(RESDIR)/golfassets.2bpp $(RESDIR)/bgp
 	@$(MKDIR_P) $(@D)
 	$(TMXRASTERIZER) $< $(RESDIR)/$*.png
 # this assumes that the golf tiles will be copied to $8800
-	$(SUPERFAMICONV) map -M gb -T 128 -i $(RESDIR)/$*.png -p $(word 3,$^) -t $(word 2,$^) -d $@
+	$(SUPERFAMICONV) map -M gb -F -T 128 -i $(RESDIR)/$*.png -p $(word 3,$^) -t $(word 2,$^) -d $@
 
 	
 
