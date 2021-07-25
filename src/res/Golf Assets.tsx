@@ -5,7 +5,6 @@
   <wangset name="water" type="corner" tile="-1">
    <wangcolor name="water" color="#ff0000" tile="-1" probability="1"/>
    <wangcolor name="grass" color="#00ff00" tile="-1" probability="1"/>
-   <wangcolor name="bunker" color="#0000ff" tile="-1" probability="1"/>
    <wangtile tileid="4" wangid="0,2,0,1,0,2,0,2"/>
    <wangtile tileid="5" wangid="0,2,0,1,0,1,0,2"/>
    <wangtile tileid="6" wangid="0,2,0,1,0,1,0,2"/>
@@ -19,24 +18,11 @@
    <wangtile tileid="25" wangid="0,2,0,1,0,1,0,1"/>
    <wangtile tileid="26" wangid="0,1,0,1,0,1,0,2"/>
    <wangtile tileid="27" wangid="0,2,0,2,0,1,0,1"/>
+   <wangtile tileid="33" wangid="0,2,0,2,0,2,0,2"/>
    <wangtile tileid="34" wangid="0,1,0,2,0,2,0,2"/>
    <wangtile tileid="35" wangid="0,1,0,2,0,2,0,1"/>
    <wangtile tileid="36" wangid="0,1,0,2,0,2,0,1"/>
    <wangtile tileid="37" wangid="0,2,0,2,0,2,0,1"/>
-   <wangtile tileid="42" wangid="0,3,0,3,0,3,0,3"/>
-   <wangtile tileid="43" wangid="0,2,0,2,0,2,0,2"/>
-   <wangtile tileid="44" wangid="0,2,0,3,0,2,0,2"/>
-   <wangtile tileid="45" wangid="0,2,0,3,0,3,0,2"/>
-   <wangtile tileid="46" wangid="0,2,0,2,0,3,0,2"/>
-   <wangtile tileid="47" wangid="0,2,0,3,0,2,0,2"/>
-   <wangtile tileid="48" wangid="0,2,0,3,0,3,0,2"/>
-   <wangtile tileid="49" wangid="0,2,0,2,0,3,0,2"/>
-   <wangtile tileid="54" wangid="0,3,0,3,0,2,0,2"/>
-   <wangtile tileid="55" wangid="0,3,0,2,0,2,0,3"/>
-   <wangtile tileid="56" wangid="0,2,0,2,0,3,0,3"/>
-   <wangtile tileid="57" wangid="0,3,0,3,0,2,0,2"/>
-   <wangtile tileid="58" wangid="0,3,0,2,0,2,0,3"/>
-   <wangtile tileid="59" wangid="0,2,0,2,0,3,0,3"/>
   </wangset>
   <wangset name="water interior" type="mixed" tile="-1">
    <wangcolor name="" color="#ff0000" tile="-1" probability="1"/>
@@ -52,6 +38,21 @@
    <wangtile tileid="9" wangid="8,9,2,9,5,9,1,9"/>
    <wangtile tileid="18" wangid="6,9,3,9,7,9,4,9"/>
    <wangtile tileid="19" wangid="5,9,4,9,8,9,3,9"/>
+  </wangset>
+  <wangset name="bunker" type="edge" tile="-1">
+   <wangcolor name="grass" color="#ff0000" tile="-1" probability="1"/>
+   <wangcolor name="bunker" color="#00ff00" tile="-1" probability="1"/>
+   <wangtile tileid="33" wangid="1,0,1,0,1,0,1,0"/>
+   <wangtile tileid="43" wangid="1,0,2,0,1,0,2,0"/>
+   <wangtile tileid="44" wangid="1,0,1,0,2,0,1,0"/>
+   <wangtile tileid="45" wangid="1,0,1,0,1,0,2,0"/>
+   <wangtile tileid="46" wangid="1,0,2,0,2,0,1,0"/>
+   <wangtile tileid="47" wangid="1,0,1,0,2,0,2,0"/>
+   <wangtile tileid="53" wangid="2,0,1,0,2,0,1,0"/>
+   <wangtile tileid="54" wangid="1,0,2,0,1,0,1,0"/>
+   <wangtile tileid="55" wangid="2,0,1,0,1,0,1,0"/>
+   <wangtile tileid="56" wangid="2,0,2,0,1,0,1,0"/>
+   <wangtile tileid="57" wangid="2,0,1,0,1,0,2,0"/>
   </wangset>
  </wangsets>
 </tileset>
