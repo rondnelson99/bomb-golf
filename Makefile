@@ -85,6 +85,13 @@ rebuild:
 	$(MAKE) all
 .PHONY: rebuild
 
+# This will upload the rom to my cart flasher program connected to an Arduino on COM4 (ttyS4)
+upload:
+	$(MAKE) all
+	stty -F /dev/ttyS4 500000 cs8 -cstopb -parenb -opost -ixoff
+	sx $(ROM) < /dev/ttyS4 > /dev/ttyS4
+.PHONY: upload
+
 ################################################
 #                                              #
 #                GIT SUBMODULES                #
