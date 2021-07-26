@@ -148,14 +148,20 @@ $(RESDIR)/%.pb8.size: $(RESDIR)/%
 	@$(MKDIR_P) $(@D)
 	$(call filesize,$<,8) > $(RESDIR)/$*.pb8.size
 
-# define how to generate tilemaps for courses using the golf course tileset. Requires Tiled and superfamiconv.
-$(RESDIR)/%.golftilemap: $(RESDIR)/%.tmx $(RESDIR)/golfassets.2bpp $(RESDIR)/bgpalette.pal
+
+# define how to generate tilemaps to work alongside a specified tileset. Requires Tiled and superfamiconv.
+# this removes the extension from the target, and then isolates the extension on that.
+# it adds .2bpp to the result, and uses that as the tileset. 
+# For the Tiled file, it just takes the .xxx.tilemap extensions and replaces them with .tmx
+# these complicated prereqs require the use of SECONDEXPANSION to get access to '$*'
+# for instance, res/Map01.golf.tilemap would depend on res/Map01.tmx and res/golf.2bpp
+.SECONDEXPANSION:
+$(RESDIR)/%.tilemap: $$(RESDIR)/$$(basename $$*).tmx $$(RESDIR)/$$(subst .,,$$(suffix $$*)).2bpp $(RESDIR)/bgpalette.pal
 	@$(MKDIR_P) $(@D)
+	echo $(RESDIR)/$(subst .,,$(suffix $*)).2bpp
 	$(TMXRASTERIZER) $< $(RESDIR)/$*.png
 # this assumes that the golf tiles will be copied to $8800
-	$(SUPERFAMICONV) map -M gb -F -T 128 -i $(RESDIR)/$*.png -p $(word 3,$^) -t $(word 2,$^) -d $@
-
-	
+	$(SUPERFAMICONV) map -M gb -F -T 128 -i $(RESDIR)/$*.png -p $(word 3,$^) -t $(word 2,$^) -d $@	
 
 ###############################################
 #                                             #

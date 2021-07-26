@@ -37,8 +37,8 @@ DisableScreen:
 
 
 ExampleTilemap:
-	INCBIN "res/Map01.golftilemap"
+	INCBIN "res/Map01.golf.tilemap"
 ExampleTilemapEnd:
 ExampleTiles:
-	INCBIN "res/golfassets.2bpp"
+	INCBIN "res/golf.2bpp"
 ExampleTilesEnd:

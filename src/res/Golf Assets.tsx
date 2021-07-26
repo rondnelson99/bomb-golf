@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.5" tiledversion="1.7.1" name="Golf Assets" tilewidth="8" tileheight="8" tilecount="60" columns="10">
- <image source="golfassets.png" width="80" height="48"/>
+ <image source="golf.png" width="80" height="48"/>
  <wangsets>
   <wangset name="water" type="corner" tile="-1">
    <wangcolor name="water" color="#ff0000" tile="-1" probability="1"/>
