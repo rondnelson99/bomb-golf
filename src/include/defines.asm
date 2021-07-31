@@ -6,7 +6,8 @@ INCLUDE "hardware.inc/hardware.inc"
 
 INCLUDE "rgbds-structs/structs.asm"
 
-
+;this contains the corresponding numbers for sprite tiles at $8000
+INCLUDE "spritenames.asm"
 ; A couple more hardware defines
 
 NB_SPRITES equ 40
