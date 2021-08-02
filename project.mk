@@ -19,7 +19,8 @@ TITLE := "BOMB GOLF"
 # Homebrew games FTW!
 LICENSEE := HB
 # Old licensee, please set to 0x33 (required to get SGB compatibility)
-OLDLIC := 0x33
+# but we set it to 1 instead because that is nescessary for the title checksum hack
+OLDLIC := 0x01
 
 # MBC type, tells which hardware is in the cart
 # See https://gbdev.io/pandocs/#_0147-cartridge-type or consult any copy of Pan Docs
@@ -64,3 +65,6 @@ LDFLAGS += -d
 
 # 32k mode
 LDFLAGS += -t
+
+# desired checksum for the Title Checksum Hack
+TITLECHECKSUM := '0xAA'
