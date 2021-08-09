@@ -128,6 +128,16 @@ $(RESDIR)/%.2bpp: $(RESDIR)/%.png
 	@$(MKDIR_P) $(@D)
 	$(RGBGFX) -o $@ $<
 
+# this is for column-major 1bpp tiles
+$(RESDIR)/%.v1bpp: $(RESDIR)/%.png
+	@$(MKDIR_P) $(@D)
+	$(RGBGFX) -h -d 1 -o $@ $<
+
+# this is for column-major 2bpp tiles
+$(RESDIR)/%.v2bpp: $(RESDIR)/%.png
+	@$(MKDIR_P) $(@D)
+	$(RGBGFX) -h -o $@ $<
+
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
 $(RESDIR)/%.pb16: $(RESDIR)/% $(SRCDIR)/tools/pb16.py

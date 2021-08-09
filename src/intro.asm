@@ -32,6 +32,11 @@ DisableScreen:
 	;init other stuff
 	call InitCrosshair
 
+	xor a
+	ld [wCraterVRAMSP], a
+	ld a, HIGH($9800)
+	ld [wCraterVRAMSP + 1], a
+
 	;turn the LCD back on
 
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;bg + sprites

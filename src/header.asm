@@ -109,6 +109,8 @@ Reset::
 	rst MemsetSmall
 	ld a, h ; ld a, HIGH(wShadowOAM)
 	ldh [hOAMHigh], a
+	ldh [hHeldKeys], a
+	ldh [hPressedKeys], a
 
 	; `Intro`'s bank has already been loaded earlier
 	jp Intro
@@ -155,4 +157,9 @@ SECTION "Stack", WRAM0
 wStack:
 	ds STACK_SIZE
 wStackBottom:
+
+SECTION "Stored SP", WRAM0 ;used for popslides and the like
+
+wStoredSP::
+	ds 2
 
