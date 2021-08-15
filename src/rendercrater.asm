@@ -119,10 +119,13 @@ Rotate:
 
                     ld a, [hl] ;get three bytes
                     add hl, de
+                    res 2, h ;we have to to this after every add to make hl wrap around to the top instead of spilling into the $9C00 tilemap
                     ld b, [hl]
                     add hl, de
-                    ld c, [hl]
-                    add hl, de ;10 of 16 cycles used
+                    res 2, h
+                    ld c, [hl] ;14 of 15 cycles used
+                    add hl, de 
+                    res 2, h
 
                     ld [wCraterTilemapStrip], a ;store them
                     ld a, b
@@ -130,23 +133,30 @@ Rotate:
                     ld a, c
                     ld [wCraterTilemapStrip + 2], a
 
+                   
                     wait_vram
-
-                    ld a, [hl] ;get the last 4 bytes
+                 
+                    ld a, [hl] ;get 3 more bytes
                     add hl, de
+                    res 2, h
                     ld b, [hl]
                     add hl, de
-                    ld c, [hl]
+                    res 2, h
+                    ld c, [hl] ;14 of 15 cycles used
                     add hl, de
-                    ld d, [hl] ;14 of 16 cycles used
+                    res 2, h
+
+                    ld [wCraterTilemapStrip + 3], a
+
+                    wait_vram
+                    ld a, [hl] ;get the last byte
+                    ld [wCraterTilemapStrip + 6], a ;store it so we can clobber a
+
                     ;now we can clobber hl
-                    ld hl, wCraterTilemapStrip + 3
-                    ld [hl+], a
+                    ld hl, wCraterTilemapStrip + 4 ;store the third-last and second-last bytes
                     ld a, b
                     ld [hl+], a
-                    ld a, c
-                    ld [hl+], a
-                    ld [hl], d
+                    ld [hl], c
 
                 CopyFirstTile:
                     ld a, [wCraterTilemapStrip] 
@@ -249,7 +259,15 @@ Rotate:
                     
                 pop bc ;this is the counter of rows we've rendered
             pop hl ;and this is the pointer to the tilemap
-            inc hl ;move to the next column
+            ;move to the next column by incrementing only the lower 5 bis of l
+            
+            ld a, l
+            inc a
+            xor l
+            and %00011111 ;masked merge
+            xor l
+            ld l, a
+
             dec c
             jp nz , RenderCraterColumn ;this is a little too long for jr
 
@@ -324,11 +342,11 @@ CraterCopyTilemap:
 ; check if we need to horizontally adjust too
     ld a, l ;low byte of tilemap address
     and %00011111 ;get just the X portion
-    cp - CRATER_WIDTH / 8 / 2 ; if this doesn't carry, then we're at the end of the line and need to wait until we wrap around to the start
-    jr c, .doneHorizontalAdjust
-    cp - CRATER_WIDTH / 8 + 1 ; if this doesn't carry, then we're approaching the end of the line but still on the right side of it, so loop until the end of the line.
+    cp SCRN_VX_B - CRATER_WIDTH / 8 / 2 ; if this doesn't carry, then we're at the end of the line and need to wait until we wrap around to the start
+    jr nc, .horizontalFrontPorch
+    cp SCRN_VX_B - CRATER_WIDTH / 8 + 1 ; if this doesn't carry, then we're approaching the end of the line but still on the right side of it, so loop until the end of the line.
     jr nc, .byteLoopUntilBackPorch
-    jr .byteloop ;if the address passed both of those checks, then we can just copy a whole row
+    jr .byteLoop ;if the address passed both of those checks, then we can just copy a whole row
 .horizontalFrontPorch ;blank the left edge of the crater
     dec c ;dec the byte counter because we're skipping a byte
     inc de ;skip a tilemap entry too
@@ -337,15 +355,11 @@ CraterCopyTilemap:
     and %00011111 
     jr nz, .horizontalFrontPorch
 .finishHorizontalAdjust
-    ;masked merge a back into hl
-    xor l
-    and %00011111
-    xor l
+    ld a, l ;reset the lower bits of l since we're at the start of a line
+    and %11100000 
     ld l, a
 .doneHorizontalAdjust
-
-
-.byteloop ;this loop only copies until c is depleted and we reach the end of the crater. It doesn't check for the end of the screen
+.byteloopAfterFrontPorch ;this loop only copies until c is depleted and we reach the end of the crater. It doesn't check for the end of the screen
     wait_vram
     ld a, [de]
     inc de
@@ -357,7 +371,29 @@ CraterCopyTilemap:
     ld [hl+], a ;uses 13 of 16 VRAM cycles
     inc de
     dec c
-    jr nz, .byteloop
+    jr nz, .byteloopAfterFrontPorch
+
+    ld a, l
+    add SCRN_VX_B + SCRN_VX_B - (CRATER_WIDTH / 8 + 1) ;add an extra row because of the way it wraps around at the start of this codepath
+    ld l, a
+    adc h
+    sub l
+    ld h, a
+    jr .finishRowDoneAdd
+
+.byteLoop;this loop only copies until c is depleted and we reach the end of the crater. It doesn't check for the end of the screen
+    wait_vram
+    ld a, [de]
+    inc de
+    ld [hl+], a
+    ;keep writing until b runs out
+    dec c
+    jr z, .finishRow ;this loop is wierdly unrolled in order to minimize VRAM checks
+    ld a, [de]
+    ld [hl+], a ;uses 13 of 16 VRAM cycles
+    inc de
+    dec c
+    jr nz, .byteLoop
     jr .finishRow
 
 .byteLoopUntilBackPorch ;this loop only copies until we reach the horizontal end of the tilemap
@@ -376,7 +412,6 @@ CraterCopyTilemap:
     ld a, l
     and %00011111
     jr nz, .byteLoopUntilBackPorch
-
 .horizontalBackPorch ;discard the remaining bytes in the row by incrementing the pointers until c is 0 (indicating the end of a crater row)
     inc de ;crater tilemap pointer
     inc l ;tilemap pointer. This won't overflow since we just waited for l % 32 == 0
@@ -391,13 +426,15 @@ CraterCopyTilemap:
     sub l
     ld h, a
 
+.finishRowDoneAdd
     ;now check if we just passed the end of the $9800 tilemap, if so, exit to avoid wrapping arounf to the top.
     bit 2, h
     ret nz
 
     dec b ;move to the next row
     jr nz, .rowloop
-    ret ;finally
+    
+    ret ;finally 
 
 
 
@@ -451,7 +488,7 @@ CopyTileFromVRAM:
     ld [hl+], a
     ld a, b
     ld [hl+], a
-    pop bc ;15 of 16 VRAM cycles used
+    pop bc ;15 of 15 VRAM cycles used
     ld a, e
     ld [hl+], a
     ld a, d
@@ -468,7 +505,7 @@ CopyTileFromVRAM:
     ld [hl+], a
     ld a, b
     ld [hl+], a
-    pop bc ;15 of 16 VRAM cycles used
+    pop bc ;15 of 15 VRAM cycles used
     ld a, e
     ld [hl+], a
     ld a, d
@@ -481,7 +518,7 @@ CopyTileFromVRAM:
     wait_vram ;now we only need 4 more bytes
 
     pop bc
-    pop de ;6 of 16 VRAM cycles used
+    pop de ;6 of 15 VRAM cycles used
     ld a, c
     ld [hl+], a
     ld a, b
