@@ -14,15 +14,12 @@ DisableScreen:
 
 	;now the screen is off
 
-	ld hl, $8000 ;decompress the sprite tiles to sprite tile VRAM
-	ld de, PB16SpriteTiles
-	ld b, 128 ;copy 128 tiles. In PB16, each packet is 16 bytes or 1 tile
+	ld hl, $8000 ;decompress the main tiles to VRAM
+	ld de, MainTilesetPB16
+	ld b, 128 + 60 ;copy 128 $8000 + 60 $8800 tiles. In PB16, each packet is 16 bytes or 1 tile
 	call pb16_unpack_block
 
-	;ld hl, $8800 ;this is where we'll put the tiles for now, but hl will already be pointed here after the last function
-	ld de, ExampleTiles
-	ld bc, ExampleTilesEnd - ExampleTiles
-	call Memcpy
+
 
 	ld hl, $9800;this is where we'll put the tilemap for now
 	ld de, ExampleTilemap
@@ -31,16 +28,16 @@ DisableScreen:
 
 	;init other stuff
 	call InitCrosshair
+	call InitStatusBar
 
 	xor a
 	ld [wCraterVRAMSP], a
 	ld a, HIGH($9800)
 	ld [wCraterVRAMSP + 1], a
 
-	;turn the LCD back on
+	;turn the LCD back on with the hLCDC value set when initing the statusbar
 
-	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ;bg + sprites
-	ldh [hLCDC], a
+	ldh a, [hLCDC]
 	ldh [rLCDC], a
 
 MainLoop:
@@ -67,12 +64,10 @@ MainLoop:
 
 
 ExampleTilemap:
-	INCBIN "res/Map01.golf.tilemap.pb16"
+	INCBIN "res/Map01.maintileset.tilemap.pb16"
 ExampleTilemapEnd:
 
-ExampleTiles:
-	INCBIN "res/golf.2bpp"
-ExampleTilesEnd:
+SECTIOn "main tileset", ROM0
+MainTilesetPB16:
+	INCBIN "res/maintileset.2bpp.pb16"
 
-PB16SpriteTiles:
-	INCBIN "res/spriteTiles.2bpp.pb16"

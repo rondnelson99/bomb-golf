@@ -71,6 +71,7 @@ LCDMemsetFromD::
 	jr nz, .loop
 	dec b
 	jr nz, .loop
+UncoditionalRet:: ;I use this to delay by calling a ret sometimes
 	ret
 
 SECTION "LCDMemcpySmall", ROM0

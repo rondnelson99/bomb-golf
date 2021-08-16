@@ -116,8 +116,10 @@ SECTION "Handlers", ROM0[$40]
 	jp VBlankHandler
 	ds $48 - @
 
-; STAT handler
-	rst $38
+; STAT handler 
+	push af 
+	push hl
+	jp STATHandler
 	ds $50 - @
 
 ; Timer handler
@@ -130,6 +132,91 @@ SECTION "Handlers", ROM0[$40]
 
 ; Joypad handler (useless)
 	rst $38
+
+SECTION "STAT Handler", ROM0
+STATHandler: ;this handler processes a table full of LYC values and things to write to LCDC.
+	;the format is like this:
+	; 1: *NEXT* scaline number minus 1 for handling time
+	; 2: value to write to LCDC on the *CURRENT* LYC scanline
+	; this can repeat up to 128 times, but the table must start on a page boundary
+	; at the end of the table, the next scanline number should be 0.
+
+	;to avoid breaking VRAM writes, the LYC handler must take between 87 and 109 cycles, 
+	;and should only mess with PPU registers after cycle 87 (which is guaranteed fo me mode 0 or mode 2)
+	;we've already used 12 cycles
+	ldh a, [rLY] ;check if LY=0, because I'll use that for music drivers and resetting the LYC table index
+	and a
+	jr z, STATHandlerLYZero ;now we've used 18 cycles
+	;we have this table full of values to write to rLCDC and line numbers for the next interrupt
+	ldh a, [hLYCTableHigh]
+	ld h, a
+	ldh a, [hLYCTableLow]
+	ld l, a ;so now we've got the pointer to the table
+	;we've used 26 cycles now
+	ld a, [hl+] ;this is the line number when the next LYC should fire
+	ldh [rLYC], a
+	ld a, [hl+] ;and this is the value we should write to rLCDC once the PPU reaches the end of the line
+	ld h, a ;we're done with h now, so we may as well store the value here instead of pushing bc or de.
+	;we've used 34 cycles now
+	ld a, l ;now we store the LYC table pointer 
+	ldh [hLYCTableLow], a
+	ld a, h ;get the pop done ahead of time
+	pop hl
+	;and that's 42 cycles. now we have to sleep for 43 more cycles, then do the write and get out of there. 
+	;calling a ret takes 10 cycles
+	call UncoditionalRet
+	call UncoditionalRet
+	call UncoditionalRet
+	call UncoditionalRet
+	;now sleep for 3 cycles
+	nop
+	nop
+	nop 
+	;do the write. The actual write happends on the third cycle, which will be the 88th cycle when we're guaranteed to be in Hblank.
+	ldh [rLCDC], a
+	;and finish up
+	pop af
+	reti
+
+STATHandlerLYZero: ;this special case will handle music updates and resetting the LYC table
+	xor a ;reset the LYC table pointer
+	ldh [hLYCTableLow], a
+	ld l, a
+	ldh a, [hLYCTableHigh]
+	ld h, a ;now hl points to the start of the table
+	ld a, [hl+]
+	ldh [rLYC], a ;prepare the next LYC
+	inc l ;skip the argument for LYC=0
+	ld a, l
+	ldh [hLYCTableLow], a
+
+	ei
+
+	;now update music
+	
+	;busy-loop for the start of Hblank so we can return safely without messing up any VRAM accesses
+	ld   hl, rSTAT
+    ; Wait until Mode is -NOT- 0 or 1
+.waitNotBlank
+    bit  1, [hl]
+    jr   z, .waitNotBlank
+    ; Wait until Mode 0 or 1 -BEGINS- (but we know that Mode 0 is what will begin)
+.waitBlank
+    bit  1, [hl]
+    jr   nz, .waitBlank
+
+	pop hl
+	pop af
+	
+	ret
+
+
+SECTION "STAT HRAM", HRAM
+hLYCTableLow: ;this is overwritten after every LYC as we advance through this table
+	ds 1
+hLYCTableHigh:: ;the high byte is not written, so we assume that the whole table is on one page, but we can use this to point the handler to multiple tables.
+	ds 1
+
 
 SECTION "VBlank handler", ROM0
 
