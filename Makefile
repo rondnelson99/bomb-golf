@@ -44,6 +44,9 @@ SUPERFAMICONV  := superfamiconv
 # Also tmxrasterizer (part of Tiled) to generate the PNG maps that SuperFamiConv takes
 TMXRASTERIZER  := tmxrasterizer
 
+# And romusage for making some nice graphs
+ROMUSAGE := romusage
+
 ROM = $(BINDIR)/$(ROMNAME).$(ROMEXT)
 
 # Argument constants
@@ -189,6 +192,8 @@ $(BINDIR)/%.$(ROMEXT) $(BINDIR)/%.sym $(BINDIR)/%.map: $(patsubst $(SRCDIR)/%.as
 	$(SRCDIR)/tools/titchack.py $(BINDIR)/$*.$(ROMEXT) '0x142' $(TITLECHECKSUM)
 # and fix the header and rom checksums
 	$(RGBFIX) -v -O $(BINDIR)/$*.$(ROMEXT) 
+# finally, show a nice graph of romusage
+	$(ROMUSAGE) $(BINDIR)/$*.map -g
 
 # `.mk` files are auto-generated dependency lists of the "root" ASM files, to save a lot of hassle.
 # Also add all obj dependencies to the dep file too, so Make knows to remake it
