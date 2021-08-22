@@ -1,6 +1,7 @@
 INCLUDE "defines.asm"
 
 POWER_CHARGE_SPEED equ 1 ;pixels per frame of power charging
+AIM_METER_SPEED equ 2 ; pixels per frame of the meter decreasing before the player locks in their aim
 
 SECTION "Check Swing", ROM0
 CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes over from the main loop. destroys everything
@@ -14,17 +15,18 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
     ld [wPowerMeterLevel], a ;start with 0 power
 
     inc a ;ld a, 1
+    assert POWER_CHARGE_SPEED == 1
     ld [wPowerChargeSpeed], a ;charge at 1 px/frame
 
-SwingLoop: ;this replaces the main loop
-    rst WaitVBlank
+    rst WaitVBlank ;queue up new input and stuff for the next loop
 
+SwingLoop: ;this replaces the main loop
     ldh a, [hPressedKeys]
     assert PADB_A == 0
-    rrca ;rotate the A button into carr  
-    ret c ;we're done here if they're done their swing
+    rrca ;rotate the A button into carry
+    jr c, .finishSwingPower ;move on to the next stage of the swing if they're selecting their power here
 
-UpdatePowerLevel:
+.updatePowerLevel
     ; otherwise, keep incrementing the power meter
     ld a, [wPowerChargeSpeed]
     ld hl, wPowerMeterLevel
@@ -38,31 +40,71 @@ UpdatePowerLevel:
     ;check if the power meter underflowed of overflowed by checking of the charge speed is positive or negative
     ld a, [wPowerChargeSpeed]
     bit 7, a
-    jr nz, .finishStroke;if they didn't even do a swing, they just gain a point
+    jr nz, FinishSwing ;if they didn't even do a swing, they just gain a point
 
     ;otherwise they've passed max power and the meter should now go down
     cpl 
     inc a ;invert the charge speed
     ld [wPowerChargeSpeed], a
-
-
-
 .skipAdjust
- 
-    ; and then draw it
+
+    ;draw the power meter
     call UpdatePowerMeter
 
     ld a, HIGH(wShadowOAM) ;queue OAM DMA
 	ldh [hOAMHigh], a
 
+    rst WaitVBlank
     jr SwingLoop
 
-.finishStroke ;I'll wrap up whatever here like incrementing the player's score.
+.finishSwingPower
+    ld a, [wPowerMeterLevel]
+    ld [wSwingPower], a ;store the player's power
+
+    rst WaitVBlank ;queue up new input and stuff for the next loop
+AimLoop: ;This also replaces the main loop
+    ldh a, [hPressedKeys]
+    assert PADB_A == 0
+    rrca ;rotate the A button into carry
+    jr c, .finishSwingAim ;move on if they've chosen their aim by pressing A
+
+.updateAimLevel
+    ld hl, wPowerMeterLevel
+    ld a, [hl]
+    sub AIM_METER_SPEED ;make the meter go down at the set speed
+    ld [hl], a 
+
+    jr nc, .skipAdjust 
+.adjustAim ;if the pointer just passed the end of the meter (resulting in a borrow), then clamp it to zero and move on
+    xor a
+    ld [hl], a
+    jr .finishSwingAim
+.skipAdjust
+
+    call UpdatePowerMeter
+
+    ld a, HIGH(wShadowOAM) ;queue OAM DMA
+	ldh [hOAMHigh], a
+
+    rst WaitVBlank
+    jr AimLoop
+
+.finishSwingAim
+    ;calculate the aim as relative to the target on the power meter
+    ld a, [wPowerMeterLevel] ;get the sopt that they're aiming at
+    sub METER_TARGET ;this is the power level that put the cursor right on the target
+    ld [wSwingAim], a
+
+
+FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
     ret
 
 SECTION "swing variables", WRAM0
 wPowerChargeSpeed: ;charge speed in px/frame
     db
+wSwingPower: ;this is set once the player has locked in their power. The range is the length of the power meter in px
+    db
+wSwingAim: ;this is set once the player has lockd their aim. it's negative if the ball should curve left and vice-versa
 
 
 

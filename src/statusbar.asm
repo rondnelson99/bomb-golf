@@ -34,7 +34,10 @@ wPowerMeterLevel:: ; stores how much power is stored in the power meter as a cou
 METER_ARROW_Y equ 4 ;the arrow starts on line 4 of the screen
 ARROW_CENTER_OFFSET equ 3 ;add this to the leftmost pixel of the tile to get the center
 METER_SIZE equ 79 ;distance from the left edge of the screen to the end of the meter
-export METER_SIZE
+export METER_SIZE ;used in stroke.asm
+METER_TARGET equ 23 ;23 power puts the arrow right on the target
+export METER_TARGET ;also in stroke.asm
+
 
 SECTION "update power meter", ROM0
 UpdatePowerMeter:: ;updates the power meter arrow in shadow OAM from the level stored in wPowerMeterLevel
