@@ -85,7 +85,7 @@ Reset::
 
 	; Select wanted interrupts here
 	; You can also enable them later if you want
-	ld a, IEF_VBLANK | IEF_LCDC
+	ld a, IEF_VBLANK
 	ldh [rIE], a
 	xor a
 	ei ; Only takes effect after the following instruction

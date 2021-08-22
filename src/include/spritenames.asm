@@ -1,7 +1,4 @@
-; Here we put numbers for sprites
+; Here we put numbers for sprite tiles
 
 SPRITE_CROSSHAIR equ $24
-
-;and here we put their OAM entry offsets
-
-OBJ_CROSSHAIR equ 0
+SPRITE_METER equ $2C

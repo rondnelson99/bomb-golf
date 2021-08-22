@@ -139,14 +139,16 @@ STATHandler: ;this handler processes a table full of LYC values and things to wr
 	; 1: *NEXT* scaline number minus 1 for handling time
 	; 2: value to write to LCDC on the *CURRENT* LYC scanline
 	; this can repeat up to 128 times, but the table must start on a page boundary
-	; at the end of the table, the next scanline number should be 0.
+	; at the end of the table, the next scanline number should be 1 for the music update on the next frame
+LYC_TABLE_END equ 1
+EXPORT LYC_TABLE_END
 
 	;to avoid breaking VRAM writes, the LYC handler must take between 87 and 109 cycles, 
 	;and should only mess with PPU registers after cycle 87 (which is guaranteed fo me mode 0 or mode 2)
 	;we've already used 12 cycles
-	ldh a, [rLY] ;check if LY=0, because I'll use that for music drivers and resetting the LYC table index
-	and a
-	jr z, STATHandlerLYZero ;now we've used 18 cycles
+	ldh a, [rLYC] ;check if LYC=1, because I'll use that for music drivers and resetting the LYC table index
+	dec a
+	jr z, STATHandlerLYOne ;now we've used 18 cycles
 	;we have this table full of values to write to rLCDC and line numbers for the next interrupt
 	ldh a, [hLYCTableHigh]
 	ld h, a
@@ -178,7 +180,7 @@ STATHandler: ;this handler processes a table full of LYC values and things to wr
 	pop af
 	reti
 
-STATHandlerLYZero: ;this special case will handle music updates and resetting the LYC table
+STATHandlerLYOne: ;this special case will handle music updates and resetting the LYC table
 	xor a ;reset the LYC table pointer
 	ldh [hLYCTableLow], a
 	ld l, a

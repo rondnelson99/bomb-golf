@@ -61,15 +61,14 @@ DoneMovement:
 SetOAMCrosshair:
     ld a, [hl+] ;X pos
     add 8 - 4 ;oam coord offset - half of size
-    ld [wShadowOAM + OBJ_CROSSHAIR + 1], a
+    ld [OBJ_CROSSHAIR + OAMA_X], a
     ld a, [hl-] ;Y pos
     add 16 - 4
-    ld [wShadowOAM + OBJ_CROSSHAIR], a
+    ld [OBJ_CROSSHAIR + OAMA_Y], a
 CheckDrawing:
     ldh a, [hPressedKeys] ;get the pressed keys instead of the held keys
-    assert PADB_A == 0
-    rra ;rotate the a button into carry
-    ret nc ;jr nc, .done ;draw the crater if a is being pressed
+    bit PADB_START, a
+    ret z ;jr z, .done ;draw the crater if start is being pressed
     ldh a, [hSCX] ;add the scroll registers to the crosshair coordinates 
     ;to get the crosshair's position on the golf course
     add [hl] ;X pos
@@ -91,9 +90,9 @@ InitCrosshair::
     ld a, SCRN_Y / 2
     ld [wCrosshairY], a
     ld a, SPRITE_CROSSHAIR
-    ld [wShadowOAM + OBJ_CROSSHAIR + 2], a
+    ld [OBJ_CROSSHAIR + OAMA_TILEID], a
     xor a ;no special flags
-    ld [wShadowOAM + OBJ_CROSSHAIR + 3], a
+    ld [OBJ_CROSSHAIR + OAMA_FLAGS], a
     ret
     
 

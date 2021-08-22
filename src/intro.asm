@@ -44,6 +44,9 @@ MainLoop:
 
 	call CheckScrolling
 
+	;check if the player is trying to swing
+	call CheckSwing
+
 	;Process objects
 	call ProcessCrosshair
 
