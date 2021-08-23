@@ -61,6 +61,24 @@ SwingLoop: ;this replaces the main loop
     ld a, [wPowerMeterLevel]
     ld [wSwingPower], a ;store the player's power
 
+    ;now make a copy of the sprite that shows the power level so they can see what their power was
+    assert OBJ_METER + 4 == OBJ_METER_COPY ;because they're right next to each other and we're only copying 4 bytes, we can use registers to store the bytes we're copying
+    
+    ld hl, OBJ_METER
+    ld a, [hl+]
+    ld b, [hl]
+    inc l
+    ld c, [hl]
+    inc l
+    ld d, [hl]
+    inc l
+    ld [hl+], a
+    ld [hl], b
+    inc l
+    ld [hl], c
+    inc l
+    ld [hl], d ;such optimization, very cool
+
     rst WaitVBlank ;queue up new input and stuff for the next loop
 AimLoop: ;This also replaces the main loop
     ldh a, [hPressedKeys]
