@@ -1,4 +1,8 @@
 INCLUDE "defines.asm"
+
+BALL_Y_OFFSET equ 4 ;offset from the top-left of the sprite to the center of the ball
+BALL_X_OFFSET equ 4
+
 SECTION "Draw Ball", ROM0
 DrawBall:: ;draws the ball on screen
     ld hl, wBallY ; this is 12.4, but we want to convert to integer
@@ -12,9 +16,15 @@ DrawBall:: ;draws the ball on screen
     xor b
     and $f0
     xor b ;masked merge
-    cp STATUS_BAR_HEIGHT - 8 ;if the sprite is fully hidden by the status bar, don't draw it
+    ;store it in c until we're ready to write it
+    ld c, a
+    ;subtract the camera position
+    ldh a, [hSCY]
+    cpl ; invert it. The inc a is bakes into the next add
+    add 1 + OAM_Y_OFS - BALL_Y_OFFSET ;convert to OAM position
+    add c
+    cp STATUS_BAR_HEIGHT - 8 + OAM_Y_OFS;if the sprite is fully hidden by the status bar, don't draw it
     jr c, .hide
-    ;otherwise, store it in c until we're ready to write it
     ld c, a
 
     ;now for the X coordinate
@@ -29,6 +39,10 @@ DrawBall:: ;draws the ball on screen
     xor b
     and $f0
     xor b ;masked merge
+    ;aubtract the camera position
+    ld hl, hSCX
+    sub [hl]
+    add OAM_X_OFS - BALL_X_OFFSET ;convert to OAM position
 
     ;now we can clobber hl and start writing these
     ld hl, OBJ_BALL ;the entry in Shadow OAM
@@ -37,7 +51,9 @@ DrawBall:: ;draws the ball on screen
     ld [hl+], a ;X coordinate
     ld a, SPRITE_BALL ;tile number
     ld [hl+], a
-    ld [hl], OAMF_PAL1 ; this uses OBP1 for fot a light blue on CGB
+    ld [hl], OAMF_PAL1 ; this uses OBP1 for for a light blue on CGB
+
+    ret
 
 
 

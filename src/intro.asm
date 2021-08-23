@@ -29,6 +29,16 @@ DisableScreen:
 	;init other stuff
 	call InitCrosshair
 	call InitStatusBar
+	
+	xor a
+	ld hl, wBallY ;this is a 12.4 coord, with the x coord after it
+	ld [hl+], a
+	ld [hl], 144 / 2 / 16
+	inc hl
+	ld [hl+], a
+	ld [hl], 160 / 2 / 16
+
+
 
 	xor a
 	ld [wCraterVRAMSP], a
@@ -47,8 +57,11 @@ MainLoop:
 	;check if the player is trying to swing
 	call CheckSwing
 
+	
+
 	;Process objects
 	call ProcessCrosshair
+	call DrawBall
 
 
 
@@ -70,7 +83,7 @@ ExampleTilemap:
 	INCBIN "res/Map01.maintileset.tilemap.pb16"
 ExampleTilemapEnd:
 
-SECTIOn "main tileset", ROM0
+SECTION "main tileset", ROM0
 MainTilesetPB16:
 	INCBIN "res/maintileset.2bpp.pb16"
 
