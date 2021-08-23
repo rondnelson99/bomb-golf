@@ -27,8 +27,9 @@ DisableScreen:
 	call pb16_unpack_block
 
 	;init other stuff
-	call InitCrosshair
+	;call InitCrosshair
 	call InitStatusBar
+	call InitAimArrow
 	
 	xor a
 	ld hl, wBallY ;this is a 12.4 coord, with the x coord after it
@@ -60,8 +61,9 @@ MainLoop:
 	
 
 	;Process objects
-	call ProcessCrosshair
+	;call ProcessCrosshair
 	call DrawBall
+	call CheckAiming
 
 
 

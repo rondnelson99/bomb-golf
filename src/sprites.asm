@@ -7,3 +7,5 @@ OBJ_CROSSHAIR::
     ds 4
 OBJ_BALL::
     ds 4
+OBJ_ARROW::
+    ds 4 ;arrow pointing in the ball direction

@@ -13,7 +13,7 @@ VERSION := 0
 # GAMEID := BOIL
 
 # Game title, up to 11 ASCII chars
-TITLE := " BOMB GOLF" # gotta have 'M' as the 4th chr for title checksum hack
+TITLE := "BOM-GOLF" # gotta have 'M' as the 4th chr for title checksum hack
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!

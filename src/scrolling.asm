@@ -13,12 +13,15 @@ CheckUp:
 	bit PADB_UP, b
 	jr z, .notUp
 	ldh a, [hSCY]
-	cp SCROLL_SPEED ;will a scroll put us past the edge of the screen?
-	jr nc, .noClamp 
-	;if so, then clamp the scroll register to it's limit
-	ld a, SCROLL_SPEED ; add SCROLL_SPEED because it's about to be subtracted away
-.noClamp 
 	sub SCROLL_SPEED ;scroll 2 px
+	;check if the range is valid
+	cp SCRN_VY - SCRN_Y
+	jr c, .noClamp
+	cp 256 - STATUS_BAR_HEIGHT
+	jr nc, .noClamp
+.Clamp;otherwise, clamp the vulue to its minimum
+	ld a, 256 - STATUS_BAR_HEIGHT
+.noClamp
 	ldh [hSCY], a
 .notUp
 
@@ -26,12 +29,15 @@ CheckDown:
 	bit PADB_DOWN, b
 	jr z, .notDown
 	ldh a, [hSCY]
-	cp SCRN_VY - SCRN_Y - SCROLL_SPEED + 1 ;will a scroll put us past the edge of the screen?
-	jr c, .noClamp 
-	;if so, then clamp the scroll register to it's limit
-	ld a, SCRN_VY - SCRN_Y - SCROLL_SPEED ; subtract SCROLL_SPEED because it's about to be added back
-.noClamp 
 	add SCROLL_SPEED ;scroll 2 px
+	;check if the range is valid
+	cp SCRN_VY - SCRN_Y
+	jr c, .noClamp
+	cp 256 - STATUS_BAR_HEIGHT
+	jr nc, .noClamp
+.Clamp;otherwise, clamp the vulue to its maximum
+	ld a, SCRN_VY - SCRN_Y
+.noClamp
 	ldh [hSCY], a
 .notDown
 
