@@ -52,14 +52,15 @@ Reset::
 	jr nz, .copyOAMDMA
 
 	;set palettes
-	ld a, %11100100 ;pretty standard BG palette
+	ld a, %11100100 ; pretty standard BG palette
 	ldh [rBGP], a
 	ldh [hBGP], a
-	ldh [rOBP1], a
-	ldh [hOBP1], a
 	ld a, %11100000 ; missing the second-lightest color
 	ldh [rOBP0], a
 	ldh [hOBP0], a
+	ld a, %11010000 ; missing the second-darkest color
+	ldh [rOBP1], a
+	ldh [hOBP1], a
 
 	; You will also need to reset your handlers' variables below
 	; I recommend reading through, understanding, and customizing this file

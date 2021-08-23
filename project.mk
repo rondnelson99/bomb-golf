@@ -13,7 +13,7 @@ VERSION := 0
 # GAMEID := BOIL
 
 # Game title, up to 11 ASCII chars
-TITLE := "BOMB GOLF"
+TITLE := " BOMB GOLF" # gotta have 'M' as the 4th chr for title checksum hack
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!
@@ -67,4 +67,4 @@ LDFLAGS += -d
 LDFLAGS += -t
 
 # desired checksum for the Title Checksum Hack
-TITLECHECKSUM := '0xAA'
+TITLECHECKSUM := '0xF4' # this is the Pac-in-time palette, but it requires the 4th char of the title to be 'M'

@@ -1,4 +1,8 @@
 INCLUDE "defines.asm"
+
+STATUS_BAR_HEIGHT equ 16
+EXPORT STATUS_BAR_HEIGHT
+
 SECTION "init status bar", ROM0
 
 InitStatusBar:: ;this should be called with the LCD off
@@ -78,7 +82,7 @@ StatusBarLYCTable:
     db 8 - 1 ;at line 8 we disable sprites
     db 0 ; this is the argument for LYC 0. It isn't used rn
 
-    db 16 - 1 ;at line 16 we turn off the window and start actually drawing the golf course using the bg
+    db STATUS_BAR_HEIGHT - 1 ;at line 16 we turn off the window and start actually drawing the golf course using the bg
     db LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINON | LCDCF_BG8000 | LCDCF_BGON ;line 10 sprite disable
 
     db LYC_TABLE_END ;finish off the table
