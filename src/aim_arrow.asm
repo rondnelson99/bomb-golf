@@ -4,7 +4,7 @@ ARROW_DIRECTION_INIT equ $FF ;an arrow direction of $ff indicates that the direc
 
 SECTION "Init Aim Arrow", ROM0
 InitAimArrow::
-    ld hl, ArrowFacingDirection
+    ld hl, wArrowFacingDirection
     xor a
     ld [hl+], a ;facing up
     ld [hl], ARROW_DIRECTION_INIT
@@ -18,7 +18,7 @@ CheckAiming:: ;reads player input and adjusts the aiming direction if nescessary
     
     ldh a, [hPressedKeys]
     ld b, a
-    ld hl, ArrowFacingDirection
+    ld hl, wArrowFacingDirection
 
     bit PADB_LEFT, b
     jr z, .notLeft
@@ -43,13 +43,13 @@ CheckAiming:: ;reads player input and adjusts the aiming direction if nescessary
 
 UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's facing
     ;check if the tile in VRAM needs updating
-    ld hl, ArrowFacingDirection
+    ld hl, wArrowFacingDirection
     ld a, [hl+]
     cp [hl] ;is the current direction equal to the old direction?
     jr z, .doneUpdateTile
 .updateTile ;if not, replce the arrow tile in VRAM
     ; a contains the desired arrow facing direction
-    ld [hl], a ; we're updating it, wo set OldArrowDirection to the new one
+    ld [hl], a ; we're updating it, wo set wOldArrowDirection to the new one
     swap a ; multiply by 16 to get the offset within the tile area
     ld e, a ;low byte of the tile data pointer
     ld d, HIGH(ArrowTiles)
@@ -87,7 +87,7 @@ UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's f
 
     ;now integer ball Y is in c, X in b
 
-    ld a, [ArrowFacingDirection]
+    ld a, [wArrowFacingDirection]
     add a, a ;double it bc there are two bytes per entry
     ld l, a
     ld h, HIGH(ArrowPositionLUT)
@@ -162,7 +162,7 @@ ArrowTiles:
 
 
 SECTION "Arrow Variables", WRAM0
-ArrowFacingDirection:: ; This can be written to by other parts of the code to change the direction that the arrow is facing
+wArrowFacingDirection:: ; This can be written to by other parts of the code to change the direction that the arrow is facing
     db ;stores a direction from 0 (straight up) clockwse to 15 (upwards angled left)
-OldArrowDirection: ;this is used to ckeck if the direction has changed (and a new tile needs to be copied into VRAM)
+wOldArrowDirection: ;this is used to ckeck if the direction has changed (and a new tile needs to be copied into VRAM)
     db ;$FF indicates that the direction needs to be initialized

@@ -34,7 +34,7 @@ SwingLoop: ;this replaces the main loop
     ; store it
     ld [hl], a
 
-    cp METER_SIZE ;is it greater/equal to METER_SIZE or less than 0?
+    cp METER_SIZE + 1 ;is it greater than METER_SIZE or less than 0?
     jr c, .skipAdjust ;if so, adjust it
 
     ;check if the power meter underflowed of overflowed by checking of the charge speed is positive or negative
@@ -113,6 +113,9 @@ AimLoop: ;This also replaces the main loop
     sub METER_TARGET ;this is the power level that put the cursor right on the target
     ld [wSwingAim], a
 
+    ; now get ready to move to the physics loop
+    call InitBallPhysics
+
 
 FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
     ret
@@ -120,9 +123,10 @@ FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
 SECTION "swing variables", WRAM0
 wPowerChargeSpeed: ;charge speed in px/frame
     db
-wSwingPower: ;this is set once the player has locked in their power. The range is the length of the power meter in px
+wSwingPower:: ;this is set once the player has locked in their power. The range is the length of the power meter in px
     db
-wSwingAim: ;this is set once the player has lockd their aim. it's negative if the ball should curve left and vice-versa
+wSwingAim:: ;this is set once the player has lockd their aim. it's negative if the ball should curve left and vice-versa
+    db
 
 
 

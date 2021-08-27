@@ -72,3 +72,7 @@ wBallY:: ;ball position relative to the course in 12.4
     dw
 wBallX:: 
     dw
+wBallVY::
+    db
+wBallVX:: ;ball velicities in 4.4
+    db

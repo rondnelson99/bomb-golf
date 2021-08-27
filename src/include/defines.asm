@@ -8,6 +8,11 @@ INCLUDE "rgbds-structs/structs.asm"
 
 ;this contains the corresponding numbers for sprite tiles at $8000
 INCLUDE "spritenames.asm"
+
+;this is the size of the power meter on the status bar. It needs to be here because it's used in for loops and needs to be constant at asm time
+METER_SIZE equ 80 ;totals pixels of the meter. Values range from 0 to 79
+
+
 ; A couple more hardware defines
 
 NB_SPRITES equ 40
