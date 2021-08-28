@@ -16,19 +16,25 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ld a, [de] ; This is the signed coefficient to get the Y velocity
     
     call SignedATimesC
-    ; h now contains the initial Y velocity
+    ; hl now contains the initial Y velocity in signed 4.12
     inc e
     ld a, [de] ;grab the coefficient for the X velocity
     ld d, h ;stash out Y velocity away for a moment
+    ld e, l
     
     ; c (shot power) is still intact
     call SignedATimesC
     ; h now contains initial X velocity 
     ld a, h
-    ld hl, wBallVX
+    ld b, l
+    ld hl, wBallVX + 1 ;high byte of X velocity
     ld [hl-], a
-    assert wBallVX - 1 == wBallVY
-    ld [hl], d ;store the velocities
+    ld [hl], b
+    assert wBallVX - 2 == wBallVY
+    dec l
+    ld [hl], d
+    dec l
+    ld [hl], e ;store the velocities
     
     ret
 
@@ -57,10 +63,10 @@ ENDR
 SECTION "Update Ball Physics", ROM0
 
 UpdateBallPhysics:: 
-    ;add the 4.4 velocities to the 12.4 positions
+    ;add the 4.12 (ignore the low byte) velocities to the 12.4 positions
 
     ld hl, wBallY 
-    ld de, wBallVY
+    ld de, wBallVY + 1 ;skip to the high byte
 
     ld a, [de]
     ld b, a
@@ -76,7 +82,8 @@ UpdateBallPhysics::
     adc c
     ld [hl+], a
     
-    inc de
+    inc e
+    inc e
 
     ld a, [de]
     ld b, a

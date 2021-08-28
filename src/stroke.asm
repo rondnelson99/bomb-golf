@@ -131,7 +131,11 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     ;check if the velocity is zero
     ld hl, wBallVY
     ld a, [hl+]
-    assert wBallVY + 1 == wBallVX
+    or [hl]
+    assert wBallVY + 2 == wBallVX
+    inc l ;the ball variables are all on the same page
+    or [hl]
+    inc l
     or [hl]
 
     jr z, FinishSwing

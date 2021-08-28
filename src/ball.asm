@@ -65,12 +65,12 @@ DrawBall:: ;draws the ball on screen
 
 
 
-SECTION "ball variables", WRAM0
+SECTION "ball variables", WRAM0, ALIGN[3] ;force these all onto the same page
 wBallY:: ;ball position relative to the course in 12.4
     dw
 wBallX:: 
     dw
 wBallVY::
-    db
-wBallVX:: ;ball velicities in 4.4
-    db
+    dw
+wBallVX:: ;ball velicities in 4.13
+    dw
