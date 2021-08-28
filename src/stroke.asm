@@ -18,6 +18,9 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
     assert POWER_CHARGE_SPEED == 1
     ld [wPowerChargeSpeed], a ;charge at 1 px/frame
 
+    ;draw the power meter
+    call UpdatePowerMeter
+
     ld a, HIGH(wShadowOAM) ;queue OAM DMA
 	ldh [hOAMHigh], a
     rst WaitVBlank ;queue up new input and stuff for the next loop
@@ -36,7 +39,7 @@ SwingLoop: ;this replaces the main loop
     ; store it
     ld [hl], a
 
-    cp METER_SIZE + 1 ;is it greater than METER_SIZE or less than 0?
+    cp METER_SIZE - 1 ;is it greater than or equal to METER_SIZE - 1 (max meter level) or less than 0?
     jr c, .skipAdjust ;if so, adjust it
 
     ;check if the power meter underflowed of overflowed by checking of the charge speed is positive or negative

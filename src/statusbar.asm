@@ -37,6 +37,7 @@ wPowerMeterLevel:: ; stores how much power is stored in the power meter as a cou
 
 METER_ARROW_Y equ 4 ;the arrow starts on line 4 of the screen
 ARROW_CENTER_OFFSET equ 3 ;add this to the leftmost pixel of the tile to get the center
+METER_ZERO_OFFSET equ 79 ;screen-relative position of the zero point of the meters
 ;METER_SIZE is in defines.asm
 METER_TARGET equ 23 ;23 power puts the arrow right on the target
 export METER_TARGET ;also in stroke.asm
@@ -45,12 +46,12 @@ export METER_TARGET ;also in stroke.asm
 SECTION "update power meter", ROM0
 UpdatePowerMeter:: ;updates the power meter arrow in shadow OAM from the level stored in wPowerMeterLevel
     ld hl, OBJ_METER ;pointer to the entry in Shadow OAM
-    ld a, 16 + METER_ARROW_Y
+    ld a, OAM_Y_OFS + METER_ARROW_Y
     ld [hl+], a ;write the Y coordinate
 
     ld a, [wPowerMeterLevel] ;grab the power level
     cpl ;invert it. Instead an `inc a`, the extra 1 will be baked into the next step
-    add 1 + 8 - ARROW_CENTER_OFFSET + METER_SIZE ;get an OAM X position. The 8 is the OAM offset.
+    add 1 + 8 - ARROW_CENTER_OFFSET + METER_ZERO_OFFSET ;get an OAM X position. The 8 is the OAM offset.
     ld [hl+], a ;write the X coordinate
 
     ld a, SPRITE_METER ;this is the sprite number
