@@ -66,22 +66,20 @@ UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's f
     ld b, a
     ld a, [hl+] ;grab the Y coord
 
-    swap b
-    swap a
     xor b
-    and $F0
-    xor b ;convert to integer
+    and $0F
+    xor b 
+    swap a;convert to integer
 
     ld c, a
 
     ld a, [hl+]
     ld b, [hl] ;grab the x coord
 
-    swap b
-    swap a
     xor b
-    and $0F
-    xor b ;convert to integer
+    and $F0
+    xor b 
+    swap a ;convert to integer
 
     ld b, a
 

@@ -30,9 +30,7 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     assert wBallVX - 1 == wBallVY
     ld [hl], d ;store the velocities
     
-
-
-    ld b, b 
+    ret
 
     
 
@@ -45,7 +43,7 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
 SECTION "power curve table", ROM0, ALIGN[8] ;use a table to define a power curve so that I can easily make any function I want
 PowerCurveLUT: ; this is 4.4 unsigned fixed point
 FOR I, METER_SIZE
-    db round(div(mul(I*1.0, 15.0), METER_SIZE*1.0)) >>12   ;linear curve
+    db div(mul(I*1.0, 15.0), METER_SIZE*1.0) >>12   ;linear curve
 ENDR
 
 SECTION "Direction Ratio Table", ROM0, ALIGN[8] ;this represents a fractional (0.8 fixed point) signed Y coefficient and signed X coefficient for each of the initial velocities
@@ -57,3 +55,46 @@ FOR I, 16
 ENDR
 
 SECTION "Update Ball Physics", ROM0
+
+UpdateBallPhysics:: 
+    ;add the 4.4 velocities to the 12.4 positions
+
+    ld hl, wBallY 
+    ld de, wBallVY
+
+    ld a, [de]
+    ld b, a
+    rla 
+    sbc a ;sign extend
+    ld c, a
+
+    ld a, [hl]
+    add b
+    ld [hl+], a
+
+    ld a, [hl]
+    adc c
+    ld [hl+], a
+    
+    inc de
+
+    ld a, [de]
+    ld b, a
+    rla 
+    sbc a ;sign extend
+    ld c, a
+
+    ld a, [hl]
+    add b
+    ld [hl+], a
+
+    ld a, [hl]
+    adc c
+    ld [hl+], a
+    
+    ret
+
+
+
+
+

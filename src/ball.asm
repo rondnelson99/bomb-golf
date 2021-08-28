@@ -11,11 +11,10 @@ DrawBall:: ;draws the ball on screen
     ld a, [hl+] ;high byte
     cp 16 ;make sure it's within the 256 px tilemap range
     jr nc, .hide ;and hide it if it's not
-    swap a
-    swap b
     xor b
-    and $f0
+    and $0f
     xor b ;masked merge
+    swap a
     ;store it in c until we're ready to write it
     ld c, a
     ;subtract the camera position
@@ -34,11 +33,10 @@ DrawBall:: ;draws the ball on screen
     ld a, [hl+] ;high byte
     cp 16 ;make sure it's within the 256 px tilemap range
     jr nc, .hide ;and hide it if it's not
-    swap a
-    swap b
     xor b
-    and $f0
+    and $0f
     xor b ;masked merge
+    swap a
     ;aubtract the camera position
     ld hl, hSCX
     sub [hl]

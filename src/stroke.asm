@@ -18,6 +18,8 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
     assert POWER_CHARGE_SPEED == 1
     ld [wPowerChargeSpeed], a ;charge at 1 px/frame
 
+    ld a, HIGH(wShadowOAM) ;queue OAM DMA
+	ldh [hOAMHigh], a
     rst WaitVBlank ;queue up new input and stuff for the next loop
 
 SwingLoop: ;this replaces the main loop
@@ -53,7 +55,6 @@ SwingLoop: ;this replaces the main loop
 
     ld a, HIGH(wShadowOAM) ;queue OAM DMA
 	ldh [hOAMHigh], a
-
     rst WaitVBlank
     jr SwingLoop
 
@@ -79,6 +80,8 @@ SwingLoop: ;this replaces the main loop
     inc l
     ld [hl], d ;such optimization, very cool
 
+    ld a, HIGH(wShadowOAM) ;queue OAM DMA
+	ldh [hOAMHigh], a
     rst WaitVBlank ;queue up new input and stuff for the next loop
 AimLoop: ;This also replaces the main loop
     ldh a, [hPressedKeys]
@@ -103,7 +106,6 @@ AimLoop: ;This also replaces the main loop
 
     ld a, HIGH(wShadowOAM) ;queue OAM DMA
 	ldh [hOAMHigh], a
-
     rst WaitVBlank
     jr AimLoop
 
@@ -115,6 +117,28 @@ AimLoop: ;This also replaces the main loop
 
     ; now get ready to move to the physics loop
     call InitBallPhysics
+
+    ld a, HIGH(wShadowOAM) ;queue OAM DMA
+	ldh [hOAMHigh], a
+    rst WaitVBlank ;queue up new input and stuff for the next loop
+PhysicsLoop: ; this takes over from the main loop until the ball stops moving
+    call UpdateBallPhysics
+    call DrawBall
+
+    ;check if the velocity is zero
+    ld hl, wBallVY
+    ld a, [hl+]
+    assert wBallVY + 1 == wBallVX
+    or [hl]
+
+    jr z, FinishSwing
+
+    ld a, HIGH(wShadowOAM) ;queue OAM DMA
+	ldh [hOAMHigh], a
+    rst WaitVBlank
+    jr PhysicsLoop
+
+
 
 
 FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
