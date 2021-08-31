@@ -9,5 +9,7 @@ OBJ_CROSSHAIR::
     ds 4
 OBJ_BALL::
     ds 4
+OBJ_SHADOW::
+    ds 4 ;shadow under the ball
 OBJ_ARROW::
     ds 4 ;arrow pointing in the ball direction

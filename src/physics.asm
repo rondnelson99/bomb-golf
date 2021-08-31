@@ -1,4 +1,7 @@
 INCLUDE "defines.asm"
+
+GRAVITY equ -5.0 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
+
 SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
     ld a, [wSwingPower]
@@ -34,7 +37,32 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     dec l
     ld [hl], d
     dec l
-    ld [hl], e ;store the velocities
+    ld [hl], e ;store the YX velocities
+
+    ; now do the Z velocity
+    ; The initial Z velocity is shot power times a constant for each club
+    ; shot power is still in C
+    ld h, 25 ;This wil be the constant for now
+
+    call HTimesC ;unsigned this time
+    ;divide by 4 to get a more reasonable range
+    ld a, l
+    srl h
+    rra
+    srl h
+    rra
+
+    ;hl now contains the inital Z velocity in 8.8
+    ld [wBallVZ], a
+    ld a, h
+    ld [wBallVZ + 1], a ;store the Z velocity
+
+    ld hl, wBallZ + 1 ;set the Z position
+    xor a
+    ld [hl-], a
+    ld [hl], 1 ;set the Z position to 1/256, because if The Z position is zero then the grounded codepath will be used
+
+
     
     ret
 
@@ -98,6 +126,63 @@ UpdateBallPhysics::
     ld a, [hl]
     adc c
     ld [hl+], a
+
+    inc e
+
+    assert wBallY + 4 == wBallZ
+    assert wBallVY + 4 == wBallVZ
+    ;hl now points to wBallZ
+    ;de now points to wBallVZ
+    ;both of these are 8.8 fixed point
+
+    ;now we check whether the ball is in the air to decide what comes next
+    ld a, [hl+]
+    or [hl]
+
+    jr z, Grounded
+
+Aerial: 
+    dec l ;now hl points to wBallZ
+    ;now we just add them
+    ld a, [de]
+    add [hl]
+    ld [hl+], a
+    inc e
+    ld a, [de] 
+    adc [hl] ;if this doesn't carry and the velocity is negative, then we just passed Z of 0, and should clip.
+    jr c, .noClip
+
+    ld b, a
+    ld a, [de] ;get the high byte of the velocity again
+    rla ;rotate sign into carry
+    ld a, b
+    jr nc, .noClip
+.clip
+    xor a ;zero the Z position
+    dec l
+    ld [hl+], a
+
+.noClip
+    ld [hl], a
+
+    dec e ;point de back to wBallVZ
+    ;add acceleration of gravity to the velocity
+    ld a, [de]
+    add LOW(GRAVITY)
+    ld [de], a
+    inc e
+    ld a, [de]
+    adc HIGH(GRAVITY)
+    ld [de], a
+
+
+Grounded:
+
+
+
+
+
+
     
     ret
 

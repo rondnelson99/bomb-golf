@@ -48,6 +48,39 @@ SignedHTimesC::
     
     ret
 
+SECTION "H Times C", ROM0
+;This one is unsigned with 16-bit output
+/* Params:
+    H: Unsigned multiplier
+    C: Unsigned multiplicand
+    
+    Returns:
+    HL: Unsigned 16-bit result 
+    C: preserved multiplicand
+    B: zero
+
+    doesn't touch A or DE
+    */
+HTimesC::
+    ld b, 0 ; clear our workspace
+    ld l, b
+
+    ;optimized first iteration
+    add hl, hl
+    jr nc, :+   
+    ld l, c ;we can load instead of add for this first round
+:
+    REPT 7 ; the other 7 iterations are standard binary long multiplication
+    add hl, hl
+    jr nc, :+
+    add hl, bc
+:
+    ENDR
+    ret
+
+
+SECTION "BC times A", ROM0
+;unsigned 8 x 16 multiplication, 16-bit output. Should also work if BC is signed.
 
 
 

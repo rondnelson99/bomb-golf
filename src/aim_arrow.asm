@@ -61,29 +61,7 @@ UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's f
 
 .doneUpdateTile
 
-    ld hl, wBallY ;this is a 12.4 course-relative coordinate folloewd by the X coordinate
-    ld a, [hl+]
-    ld b, a
-    ld a, [hl+] ;grab the Y coord
 
-    xor b
-    and $0F
-    xor b 
-    swap a;convert to integer
-
-    ld c, a
-
-    ld a, [hl+]
-    ld b, [hl] ;grab the x coord
-
-    xor b
-    and $F0
-    xor b 
-    swap a ;convert to integer
-
-    ld b, a
-
-    ;now integer ball Y is in c, X in b
 
     ld a, [wArrowFacingDirection]
     add a, a ;double it bc there are two bytes per entry
@@ -92,32 +70,15 @@ UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's f
     assert LOW(ArrowPositionLUT) == 0
 
     ;now hl points to the the Y offset of the arrow, followed by X offset
+    ld b, [hl]
+    inc l
+    ld c, [hl]
 
-    ldh a, [hSCY] 
-    cpl
-    inc a
-    add [hl]
-    add c
-    ; a contains Ball coord + arrow offset - camera position. If it's a valid position, then it's ready to go in OAM
+    ld hl, wBallY ;this is a 12.4 course-relative coordinate folloewd by the X coordinate
+    ld de, OBJ_ARROW ;shadow OAM entry
 
-    cp STATUS_BAR_HEIGHT - 8 + OAM_Y_OFS;if the sprite is fully hidden by the status bar, don't draw it
-    jr c, .hide
-    
-    ld c, a
-
-    inc l ;the table is aligned so this won't overflow
-
-    ldh a, [hSCX] ;do the same for the X coord
-    cpl 
-    inc a
-    add [hl]
-    add b
-
-    ;now write to OAM
-    ld hl, OBJ_ARROW
-    ld [hl], c ;write the Y coord
-    inc l ;this is fine bc OAM is aligned
-    ld [hl+], a
+    call RenderSprite124 ;render the sprite to shadow OAM
+    ;now just write tile number and flags, which hl points to
     ld a, SPRITE_ARROW ;tile number
     ld [hl+], a
     ld [hl], 0 ;no special flags
@@ -125,14 +86,10 @@ UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's f
     ret
 
 
-.hide
-    xor a ;zero the Y coordinate in OAM to hide it
-    ld [OBJ_ARROW + OAMA_Y], a
-    ret
 
 MACRO ArrowPosition ;arguments are relative to the center of the arrow
-    db \1 - 4 + OAM_Y_OFS
-    db \2 - 4 + OAM_X_OFS
+    db \1 - 4 
+    db \2 - 4
 ENDM
 
 SECTION "Arrow Position Table", ROM0, ALIGN[8]

@@ -35,9 +35,13 @@ DisableScreen:
 	ld hl, wBallY ;this is a 12.4 coord, with the x coord after it
 	ld [hl+], a
 	ld [hl], 144 / 2 / 16
-	inc hl
+	inc l
 	ld [hl+], a
 	ld [hl], 160 / 2 / 16
+	inc l
+	;and now comes the z coord, which will jus be set to 0
+	ld [hl+], a
+	ld [hl+], a
 
 
 
