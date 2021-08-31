@@ -1,7 +1,7 @@
 INCLUDE "defines.asm"
 
 GRAVITY equ -5.0 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
-
+POWER equ 0.3 ; shot power in a range from 0 to 1. Must be less than 1.
 SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
     ld a, [wSwingPower]
@@ -42,7 +42,7 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ; now do the Z velocity
     ; The initial Z velocity is shot power times a constant for each club
     ; shot power is still in C
-    ld h, 25 ;This wil be the constant for now
+    ld h, 80 ;This wil be the constant for now
 
     call HTimesC ;unsigned this time
     ;divide by 4 to get a more reasonable range
@@ -77,7 +77,7 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
 SECTION "power curve table", ROM0, ALIGN[8] ;use a table to define a power curve so that I can easily make any function I want
 PowerCurveLUT: ; this is 4.4 unsigned fixed point
 FOR I, METER_SIZE
-    db div(mul(I*1.0, 15.0), METER_SIZE*1.0) >>12   ;linear curve
+    db div(mul(I*1.0, POWER<<4), METER_SIZE*1.0) >>12   ;linear curve
 ENDR
 
 SECTION "Direction Ratio Table", ROM0, ALIGN[8] ;this represents a fractional (0.8 fixed point) signed Y coefficient and signed X coefficient for each of the initial velocities
