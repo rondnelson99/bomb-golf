@@ -78,6 +78,83 @@ HTimesC::
     ENDR
     ret
 
+SECTION "HL Over C", ROM0 ;divides unsigned HL by unsigned C
+/* Params:
+HL: unsigned 16-bit dividend
+C: unsigned 8-bit divisor
+
+Returns:
+HL: Unsigned 16-bit quotient
+C: Preserved divisor
+A: Remainder
+
+Preserves B and DE
+*/
+HLOverA::
+    ld c, a
+HLOverC::
+    xor a
+
+REPT 16
+    add hl, hl
+    rla 
+    cp c
+    jr c, :+
+    sub c
+    inc l
+:
+ENDR
+    ret
+
+
+SECTION "Signed Square Table", ROM0, ALIGN[8] 
+;this table is meant to be used with the matching square root table to find magnitudes of vectors
+SignedSquareTable::
+    FOR I, 0, 128.0, 1.0
+        db ceil(mul(255.0,div(pow(I,2.0),pow(128.0,2.0))))>>16
+    ENDR
+    FOR I, -128.0, 0, 1.0
+        db ceil(mul(255.0,div(pow(I,2.0),pow(128.0,2.0))))>>16
+    ENDR
+
+SECTION "Square Root Table", ROM0, ALIGN[9]
+
+SqrtTable::
+    FOR I, 0, 511.0, 1.0 ;the last byte would never be used since $FF + $FF = $1FE
+        db floor( pow( mul(pow(128.0,2.0), div(I,255.001)) ,0.5))>>16 ;the .001 is a dirty hack to stay within the 16.16 range these constants use
+    ENDR
+
+
+SECTION "magnitude of vector", ROM0
+; gets the 8-bit magnitude of of a signed vector components in A and B
+; returns result in A
+; clobbers hl
+GetVectorMagnitude:: ;uses pythagorean theorem and square/sqrt tables
+    ld h, HIGH(SignedSquareTable)
+    ld l, a
+    ld a, [hl] ;get the first square
+
+    ld l, b
+    add [hl] ;get the sum of squares
+
+    ld l, a
+    ld h, HIGH(SqrtTable) >> 1
+    rl h
+    ld a, [hl] ;get the square root
+
+    ret
+
+
+
+
+
+
+
+
+
+
+
+
 
 SECTION "BC times A", ROM0
 ;unsigned 8 x 16 multiplication, 16-bit output. Should also work if BC is signed.

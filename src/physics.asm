@@ -42,7 +42,7 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ; now do the Z velocity
     ; The initial Z velocity is shot power times a constant for each club
     ; shot power is still in C
-    ld h, 80 ;This wil be the constant for now
+    ld h, 60 ;This wil be the constant for now
 
     call HTimesC ;unsigned this time
     ;divide by 4 to get a more reasonable range
@@ -174,9 +174,117 @@ Aerial:
     ld a, [de]
     adc HIGH(GRAVITY)
     ld [de], a
+    
+    
+    
+    ret
 
 
 Grounded:
+    ;hl points to wBallZ + 1
+    ;de points to wBallVZ
+
+    ;subtract friction (constant deceleration) from the velocities
+
+    ;we do this by dividing a constant representing the friction (this willv ary based on terrain) by the magnitude of our velocity.
+    ;then we can multiply this by each component of our velocity to get the friction vector, which we subtract away.
+
+    ;this is 8-bit logic so we only care about the high bytes
+    inc l
+    inc l ;point hl to the high byte of wBallVY
+    assert wBallZ + 2 == wBallVY
+
+    ld a, [hl+] ;high byte of Y velocity
+    inc l
+    ld b, [hl] ;high byte of X velocity
+
+    ld e, l
+    ld d, h ;get hl into de so it can be preserved
+
+    call GetVectorMagnitude
+
+    ;now we get our friction constant
+    ;this wil vary by terrain, but we'll use a magic number for now
+
+    ld hl, 200
+    ;do the division
+    call HLOverA
+
+    ;the quotient is in hl now, but we'll assume this will be less than 256, so we only care about l
+
+
+    ;now it points to the high byte of wBallVX
+
+    ld a, [de]
+    ld c, l 
+
+    call SignedATimesC
+
+    ;now hl contains the X friction, which will be subtracted from wBallX
+    dec e
+    ld a, [de]
+    sub l
+    ld [de], a 
+    inc e
+    ld a, [de]
+    sbc h
+    ld [de], a 
+    jr nz, .noClampX
+    ;if the sign changed, clamp the whole word to 0 since the low byte is ignored when adding the velocities anyways.
+.clampX
+    xor a
+    dec e
+    ld [de], a
+    inc e ;gotta leave e with the same value it would have otherwise
+.noClampX
+
+    ;and do the Y friction
+    dec e
+    dec e ;point e to the high byte of wBallVY
+
+
+    ld a, [de]
+    call SignedATimesC
+
+    ;now hl contains the Y friction, which will be subtracted from wBallY
+    dec e
+    ld a, [de]
+    sub l
+    ld [de], a 
+    inc e
+    ld a, [de]
+    sbc h
+    ld [de], a
+    jr nz, .noClampY
+    ;if the sign changed, clamp the whole word to 0 since the low byte is ignored when adding the velocities anyways.
+.clampY
+    xor a
+    dec e
+    ld [de], a
+    inc e ;gotta leave e with the same value it would have otherwise
+.noClampY
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
 
 
 
