@@ -10,6 +10,12 @@ InitAimArrow::
     ld [hl], ARROW_DIRECTION_INIT
     ret
 
+SECTION "Clear Arrow Sprite", ROM0
+ClearArrowSprite::
+    xor a
+    ld [OBJ_ARROW], a ;zero the Y position
+    ret
+
 SECTION "Check Aiming", ROM0
 CheckAiming:: ;reads player input and adjusts the aiming direction if nescessary
     ldh a, [hHeldKeys]

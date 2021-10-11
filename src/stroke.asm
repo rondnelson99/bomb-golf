@@ -118,6 +118,7 @@ AimLoop: ;This also replaces the main loop
     sub METER_TARGET ;this is the power level that put the cursor right on the target
     ld [wSwingAim], a
 
+    call ClearArrowSprite
     ; now get ready to move to the physics loop
     call InitBallPhysics
 
@@ -126,6 +127,8 @@ AimLoop: ;This also replaces the main loop
     rst WaitVBlank ;queue up new input and stuff for the next loop
 PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     call UpdateBallPhysics
+    ld hl, wBallY
+    call ScrollToSprite124
     call DrawBall
 
     ;check if the velocity is zero
