@@ -122,7 +122,7 @@ LCDMemcpy::
 SECTION "render sprite 12.4", ROM0
 ;Chack if a sprite is no the screen, and render it if it is.
 /* Params:
-HL: pointer to 12.4 Y position, followed by 12.4 Y position
+HL: pointer to 12.4 Y position, followed by 12.4 X position
 B: Y offset from the center of the sprite to the top edge
 C: X offset from the center of the sprite to the left edge
 DE: pointer to the shadow OAM entry where this sprite can go

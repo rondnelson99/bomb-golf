@@ -45,7 +45,7 @@ SwingLoop: ;this replaces the main loop
     ;check if the power meter underflowed of overflowed by checking of the charge speed is positive or negative
     ld a, [wPowerChargeSpeed]
     bit 7, a
-    jr nz, FinishSwing ;if they didn't even do a swing, they just gain a point
+    jp nz, FinishSwing ;if they didn't even do a swing, they just gain a point
 
     ;otherwise they've passed max power and the meter should now go down
     cpl 
@@ -130,6 +130,12 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     ld hl, wBallY
     call ScrollToSprite124
     call DrawBall
+
+    ;check if we're over water
+    ld hl, wBallY
+    call LookUpTerrain
+    cp TERRAIN_WATER 
+    jr z, FinishSwing
 
     ;check if the velocity is zero
     ld hl, wBallVY
