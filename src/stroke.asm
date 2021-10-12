@@ -134,8 +134,7 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     ;check if we're over water
     ld hl, wBallY
     call LookUpTerrain
-    cp TERRAIN_WATER 
-    jr z, FinishSwing
+    ldh [hTerrainType], a
 
     ;check if the velocity is zero
     ld hl, wBallVY
@@ -159,6 +158,10 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
 
 FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
     ret
+
+SECTION "swing HRAM", HRAM
+hTerrainType:: ;holds the terrain ID that the ball is over
+    db
 
 SECTION "swing variables", WRAM0
 wPowerChargeSpeed: ;charge speed in px/frame

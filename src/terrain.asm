@@ -9,7 +9,7 @@ LookUpTerrain:: ;this takes a tilemap-relative X position and tilemap-relative Y
     ld c, a
     ld a, [hl+] ;high byte
     cp 16 ;make sure it's within the 256 px tilemap range
-    error nc ;figure out what should happen if it's not
+    jr nc, .terrainOutOfRange
     xor c
     and $0f
     xor c
@@ -21,7 +21,7 @@ LookUpTerrain:: ;this takes a tilemap-relative X position and tilemap-relative Y
     ld c, a
     ld a, [hl+] ;high byte
     cp 16 ;make sure it's within the 256 px tilemap range
-    error nc ;figure out what should happen if it's not
+    jr nc, .terrainOutOfRange
     xor c
     and $0f
     xor c
@@ -92,6 +92,10 @@ LookUpTerrain:: ;this takes a tilemap-relative X position and tilemap-relative Y
     and e ;this is the hazard type for the tile
     ;now the accumulator is 0 for no hazard, but otherwise contains the hazard type
     ret
+.terrainOutOfRange ;when the ball is outside the course area
+    ld a, TERRAIN_OOB
+    ret
+
 
 
 

@@ -1,7 +1,11 @@
 INCLUDE "defines.asm"
 
 GRAVITY equ -5.0 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
-POWER equ 0.3 ; shot power in a range from 0 to 1. Must be less than 1.
+POWER equ 0.4 ; shot power in a range from 0 to 1. Must be less than 1.
+REGULAR_FRICTION equ 200 ;16-bit friction strength for normal ground
+BUNKER_FRICTION equ 800 ;friction strength for bunkers
+GREEN_FRICTION equ 150 ;friction strength for the green
+OOB_FRICTON equ 300 ;friction strength for OOB areas
 SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
     ld a, [wSwingPower]
@@ -204,16 +208,47 @@ Grounded:
     call GetVectorMagnitude
 
     ;now we get our friction constant
-    ;this wil vary by terrain, but we'll use a magic number for now
+    ;this varies by terrain
+    ld c, a ;store away the vector magnitude
+    ldh a, [hTerrainType]
+    and a ;cp TERRAIN_NONE
+    assert TERRAIN_NONE == 0
+    jr z, .terrainNormal
+    dec a
+    assert TERRAIN_GREEN == 1
+    jr z, .terrainGreen
+    dec a
+    assert TERRAIN_OOB == 2
+    jr z, .terrainOOB
+    dec a
+    error z ;no water here
+    dec a
+    assert TERRAIN_BUNKER == 4
+    error nz
 
-    ld hl, 200
+.terrainBunker
+    ld hl, BUNKER_FRICTION
+    jr .gotFrictionConstant
+.terrainOOB
+    ld hl, OOB_FRICTON
+    jr .gotFrictionConstant
+.terrainGreen
+    ld hl, GREEN_FRICTION
+    jr .gotFrictionConstant
+.terrainNormal
+    ld hl, REGULAR_FRICTION ;friction for regular ground
+
+    
+
+
+.gotFrictionConstant
+    
     ;do the division
-    call HLOverA
+    call HLOverC
 
     ;the quotient is in hl now, but we'll assume this will be less than 256, so we only care about l
 
-
-    ;now it points to the high byte of wBallVX
+    ;now de points to the high byte of wBallVX
 
     ld a, [de]
     ld c, l 
