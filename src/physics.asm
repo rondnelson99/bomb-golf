@@ -2,6 +2,7 @@ INCLUDE "defines.asm"
 
 GRAVITY equ -5.0 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
 POWER equ 0.4 ; shot power in a range from 0 to 1. Must be less than 1.
+BUNKER_POWER_COEFFICIENT equ 0.5 ;the shot's power is multiplied by this when in a bunker. Range 0-1
 REGULAR_FRICTION equ 200 ;16-bit friction strength for normal ground
 BUNKER_FRICTION equ 800 ;friction strength for bunkers
 GREEN_FRICTION equ 150 ;friction strength for the green
@@ -14,6 +15,14 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ld h, HIGH(PowerCurveLUT)
     assert LOW(PowerCurveLUT) == 0
     ld c, [hl] ;get the power and keep it for multiplication soon
+
+    ldh a, [hTerrainType]
+    cp TERRAIN_BUNKER ;If the ball's on a bunker
+    jr nz, .notBunker
+    ld h, BUNKER_POWER_COEFFICIENT >> 8 ; reduce the power using this 0.8 FP number
+    call HTimesC
+    ld c, h
+.notBunker
 
     ld a, [wArrowFacingDirection] ;range 0-15 in multiples of 22.5 degrees from vertical
     add a, a ;this is an array of 2-byte structs, so double the index
