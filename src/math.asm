@@ -48,6 +48,59 @@ SignedHTimesC::
     
     ret
 
+SECTION "Signed H Times Signed C", ROM0
+    /* signed 8bit by unsigned 8bit multiplication
+    Params:
+    H: Signed multiplicand
+    C: Signed multiplicand
+    
+    Returns:
+    HL: signed 16-bit result 
+    C: preserved multiplicand
+    B: zero
+
+    Destroys A and doesn't touch DE
+
+    this works basically the same as the signed x unsigned routine above, 
+    but uses the +(256 * -Factor) modification for both factors
+    */
+SignedATimesSignedC::
+    ld h, a
+SignedHTimesSignedC::
+
+    xor a ;clear our workspace
+    ld l, a
+    ld b, a 
+
+    ;if C is negative, subtract H from a
+    bit 7, c
+    jr z, .cNotNegative 
+    sub h
+.cNotNegative    
+    ;special first iteration
+    add hl, hl ;this shifts the sign of the signed multiplier into carry
+    jr nc, :+
+    ;for the multiplication part, we can load instead of add for this first round
+    ld l, c
+    ;but if we're hare then l is negative, so we need get negative c into a to add it later
+    sub c ;a was zero before
+    ;now a is negative c if h was negative, or zero if x was positive
+:
+    REPT 7 ; the other 7 iterations are standard binary long multiplication
+    add hl, hl
+    jr nc, :+
+    add hl, bc
+:
+    ENDR
+
+    ;now we finish off by adding a to h to correct for the sign
+    add a, h
+    ld h, a
+    
+    ret
+
+
+
 SECTION "H Times C", ROM0
 ;This one is unsigned with 16-bit output
 /* Params:
