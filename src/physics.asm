@@ -65,7 +65,7 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     srl h
     rra
 
-    ;hl now contains the inital Z velocity in 8.8
+    ;ha now contains the inital Z velocity in 8.8
     ld [wBallVZ], a
     ld a, h
     ld [wBallVZ + 1], a ;store the Z velocity
