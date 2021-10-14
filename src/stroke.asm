@@ -120,8 +120,12 @@ AimLoop: ;This also replaces the main loop
 
     call ClearArrowSprite
     ; now get ready to move to the physics loop
+    
+    ld hl, wBallY
+    call LookUpTerrain
+    ldh [hTerrainType], a
     call InitBallPhysics
-
+    
     ld a, HIGH(wShadowOAM) ;queue OAM DMA
 	ldh [hOAMHigh], a
     rst WaitVBlank ;queue up new input and stuff for the next loop
@@ -131,7 +135,7 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     call ScrollToSprite124
     call DrawBall
 
-    ;check if we're over water
+    ;update the terrain
     ld hl, wBallY
     call LookUpTerrain
     ldh [hTerrainType], a
@@ -140,8 +144,10 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     ld hl, wBallVY
     ld a, [hl+]
     or [hl]
-    assert wBallVY + 2 == wBallVX
+    assert wBallVY + 4 == wBallVX
     inc l ;the ball variables are all on the same page
+    inc l
+    inc l
     or [hl]
     inc l
     or [hl]

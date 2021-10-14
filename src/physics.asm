@@ -46,7 +46,9 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ld hl, wBallVX + 1 ;high byte of X velocity
     ld [hl-], a
     ld [hl], b
-    assert wBallVX - 2 == wBallVY
+    assert wBallVX - 4 == wBallVY
+    dec l
+    dec l
     dec l
     ld [hl], d
     dec l
@@ -75,14 +77,63 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ld [hl-], a
     ld [hl], 1 ;set the Z position to 1/256, because if The Z position is zero then the grounded codepath will be used
 
+    ;now do the curve if they didn't center the aim
+    ld a, [wSwingAim]
+    ;this is positive if the ball should curve clockwise
+    ;so we multiply the initial X velocity by this, and make that the curve Y acceleration
+    ;but then we need to invert this before multiplying by the Y velocity to get the curve X acceleration
+
+    ld de, wBallCurveY
+
+    ;first, let's scale it according to a LUT
+    ld l, a
+    ld h, HIGH(AimCurveLUT)
+    assert LOW(AimCurveLUT) == 0
+    ld c, [hl]
+    ld a, [wBallVX + 1] ;high byte
+    call SignedATimesSignedC
+    ld a, l ;low byte of product
+    ld [de], a
+    inc e
+    ld a, h ;high byte
+    ld [de], a
+    inc e
+
+    inc e
+    inc e
+    assert wBallCurveY + 4 == wBallCurveX
 
     
+    xor a
+    sub c
+    ld c, a ;invert C
+
+    ld a, [wBallVY + 1] ;high byte
+    call SignedATimesSignedC
+    ld a, l ;low byte
+    ld [de], a
+    inc e
+    ld a, h ;high byte
+    ld [de], a
+
+    
+
+
     ret
 
     
 
+AIM_COEFFICIENT equ 0.5
+SECTION "Aim Curve Scaling Table", ROM0, ALIGN[8] ; This scales the aim curve acceleration 
 
-
+;this is 0.8 FP, which is used as a coefficient on the velocity components to get a perpendicular acceleration
+AimCurveLUT: ;this is a signed table
+    FOR I, 0, 128.0, 1.0
+        db mul(I>>8,AIM_COEFFICIENT)>>8
+    ENDR
+    FOR I, -128.0, 0, 1.0
+        db mul(I>>8,AIM_COEFFICIENT)>>8
+    ENDR
 
 
 
@@ -106,87 +157,123 @@ SECTION "Update Ball Physics", ROM0
 UpdateBallPhysics:: 
     ;add the 4.12 (ignore the low byte) velocities to the 12.4 positions
 
-    ld hl, wBallY 
-    ld de, wBallVY + 1 ;skip to the high byte
-
-    ld a, [de]
+    ld de, wBallY 
+    ld hl, wBallVY + 1 ;skip to the high byte
+    ;start with Y velocity
+    ld a, [hl-]
     ld b, a
     rla 
     sbc a ;sign extend
     ld c, a
 
-    ld a, [hl]
+    ld a, [de]
     add b
-    ld [hl+], a
-
-    ld a, [hl]
-    adc c
-    ld [hl+], a
-    
-    inc e
+    ld [de], a
     inc e
 
     ld a, [de]
+    adc c
+    ld [de], a
+
+    ;now add the Y curve acceleration
+    dec l
+    dec l
+    ld a, [hl+]
+    assert wBallVY - 2 == wBallCurveY
+    ld b, [hl]
+    inc l
+    add [hl]
+    ld [hl+], a
+    ld a, [hl]
+    adc b
+    ld [hl+], a
+
+    inc l
+    inc l
+    inc l
+    assert wBallVY + 4 == wBallVX
+    inc e
+    assert wBallY + 2 == wBallX
+
+    ;do X velocity
+    ld a, [hl-]
     ld b, a
     rla 
     sbc a ;sign extend
     ld c, a
-
-    ld a, [hl]
+    ld a, [de]
     add b
-    ld [hl+], a
-
-    ld a, [hl]
-    adc c
-    ld [hl+], a
-
+    ld [de], a
     inc e
+    ld a, [de]
+    adc c
+    ld [de], a
+    inc e
+
+    ;now add the X curve acceleration
+    dec l
+    dec l
+    ld a, [hl+]
+    assert wBallVX - 2 == wBallCurveX
+    ld b, [hl]
+    inc l
+    add [hl]
+    ld [hl+], a
+    ld a, [hl]
+    adc b
+    ld [hl+], a
+
 
     assert wBallY + 4 == wBallZ
-    assert wBallVY + 4 == wBallVZ
-    ;hl now points to wBallZ
-    ;de now points to wBallVZ
+    assert wBallVY + 6 == wBallVZ
+    ;de now points to wBallZ
+    ;hl now points to wBallVZ
     ;both of these are 8.8 fixed point
 
     ;now we check whether the ball is in the air to decide what comes next
-    ld a, [hl+]
-    or [hl]
+    ld a, [de]
+    ld b, a
+    inc e
+    ld a, [de]
+    or b
 
     jr z, Grounded
 
 Aerial: 
-    dec l ;now hl points to wBallZ
+    dec e ;now de points to wBallZ
+    ;hl points to wBallVZ
     ;now we just add them
     ld a, [de]
     add [hl]
-    ld [hl+], a
+    ld [de], a
     inc e
+    inc l
     ld a, [de] 
     adc [hl] ;if this doesn't carry and the velocity is negative, then we just passed Z of 0, and should clip.
     jr c, .noClip
 
     ld b, a
-    ld a, [de] ;get the high byte of the velocity again
+    ld a, [hl] ;get the high byte of the velocity again
     rla ;rotate sign into carry
     ld a, b
     jr nc, .noClip
 .clip
     xor a ;zero the Z position
-    dec l
-    ld [hl+], a
-
-.noClip
-    ld [hl], a
-
-    dec e ;point de back to wBallVZ
-    ;add acceleration of gravity to the velocity
-    ld a, [de]
-    add LOW(GRAVITY)
+    dec e
     ld [de], a
     inc e
-    ld a, [de]
-    adc HIGH(GRAVITY)
+
+.noClip
     ld [de], a
+
+    dec l ;point hl back to wBallVZ
+    ;add acceleration of gravity to the velocity
+    ld a, [hl]
+    add LOW(GRAVITY)
+    ld [hl+], a
+    ld a, [hl]
+    adc HIGH(GRAVITY)
+    ld [hl], a
     
     
     
@@ -194,22 +281,26 @@ Aerial:
 
 
 Grounded:
-    ;hl points to wBallZ + 1
-    ;de points to wBallVZ
+    ;de points to wBallZ + 1
+    ;hl points to wBallVZ
 
     ;subtract friction (constant deceleration) from the velocities
 
     ;we do this by dividing a constant representing the friction (this willv ary based on terrain) by the magnitude of our velocity.
     ;then we can multiply this by each component of our velocity to get the friction vector, which we subtract away.
 
-    ;this is 8-bit logic so we only care about the high bytes
-    inc l
-    inc l ;point hl to the high byte of wBallVY
-    assert wBallZ + 2 == wBallVY
+    ;this is 8-bit logic so we only care about the low bytes
+    ld a, l
+    sub 5
+    ld l, a ;point hl to the high byte of wBallVY
+    assert wBallVZ - 6 == wBallVY
 
     ld a, [hl+] ;high byte of Y velocity
     inc l
+    inc l
+    inc l
     ld b, [hl] ;high byte of X velocity
+    assert wBallVY + 4 == wBallVX
 
     ld e, l
     ld d, h ;get hl into de so it can be preserved
@@ -264,7 +355,7 @@ Grounded:
 
     call SignedATimesC
 
-    ;now hl contains the X friction, which will be subtracted from wBallX
+    ;now hl contains the X friction, which will be subtracted from wBallVX
     dec e
     ld a, [de]
     sub l
@@ -284,7 +375,10 @@ Grounded:
 
     ;and do the Y friction
     dec e
+    dec e
+    dec e
     dec e ;point e to the high byte of wBallVY
+    assert wBallVX - 4 == wBallVY
 
 
     ld a, [de]

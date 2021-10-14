@@ -50,7 +50,11 @@ wBallX::
     dw
 wBallZ::
     dw ;this is 8.8 fixed point, expressed in shadow offset pixels
+wBallCurveY:: ;this is the curve acceleration for when they dob't get their aim perfect
+    dw ;it's not subject to friction
 wBallVY::
+    dw
+wBallCurveX::
     dw
 wBallVX:: ;ball velicities in 4.12
     dw
