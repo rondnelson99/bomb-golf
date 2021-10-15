@@ -99,6 +99,52 @@ SignedHTimesSignedC::
     
     ret
 
+SECTION "Signed BC Times A", ROM0
+    /* signed 16bit by unsigned 8bit multiplication
+    Params:
+    BC: Signed multiplicand
+    A: Unsigned multiplicand
+    
+    Returns:
+    AHL: signed 24-bit result 
+    BC: preserved multiplicand
+    E: 0
+
+    Destroys HL, D
+
+    this works basically the same as the 8-bit signed x unsigned routine above, 
+    but stores positive C in D instead of negative C in A
+    */
+
+SignedBCTimesA:: 
+    ld hl, 0 ;clear our workspace
+    ld d, l
+    ld e, l
+
+    bit 7, b ;check if BC is negative
+    jr z, .positive
+    ld d, a ;get a into d so it can be subtracted later
+    ;now d has a if BC was negative, or 0 if it was positive
+.positive
+    ;optimized first iteration
+    add a 
+    jr nc, :+
+    add hl, bc
+
+:
+    REPT 7 ; the other 7 iterations are standard binary long multiplication
+    add hl, hl
+    rla
+    jr nc, :+
+    add hl, bc
+    adc e
+:
+    ENDR
+
+    ;now we finish off by subtracting d from a to correct for the sign
+    sub d ;this effectively subtracts A * 65536 from the result
+    
+    ret
 
 
 SECTION "H Times C", ROM0

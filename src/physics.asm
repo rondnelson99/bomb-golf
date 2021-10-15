@@ -1,15 +1,31 @@
 INCLUDE "defines.asm"
 
-GRAVITY equ -5.0 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
-POWER equ 0.4 ; shot power in a range from 0 to 1. Must be less than 1.
+GRAVITY equ -1.5 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
+POWER equ 0.25 ; shot power in a range from 0 to 1. Must be less than 1.
 BUNKER_POWER_COEFFICIENT equ 0.5 ;the shot's power is multiplied by this when in a bunker. Range 0-1
 REGULAR_FRICTION equ 200 ;16-bit friction strength for normal ground
 BUNKER_FRICTION equ 800 ;friction strength for bunkers
 GREEN_FRICTION equ 150 ;friction strength for the green
 OOB_FRICTON equ 300 ;friction strength for OOB areas
+AIM_COEFFICIENT equ 0.2 ;defines the strength of the curve acceleration
+CURVE_REDUCTION_COEFFICIENT equ 0.9 ;the curve accelerations are multiplied by this every frame when the ball is grounded
 SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
+    
+    ld a, [wSwingAim]
+    bit 7, a ;get the absolute value
+    jr z, .positive
+    cpl 
+    inc a
+.positive
+    ld c, a
+    
+    
     ld a, [wSwingPower]
+    sub c ;subtract the aim from the power
+    jr nc, .noClamp
+    xor a
+.noClamp
     ;look up the shot power in the power curve table
     ld l, a
     ld h, HIGH(PowerCurveLUT)
@@ -123,7 +139,6 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
 
     
 
-AIM_COEFFICIENT equ 0.5
 SECTION "Aim Curve Scaling Table", ROM0, ALIGN[8] ; This scales the aim curve acceleration 
 
 ;this is 0.8 FP, which is used as a coefficient on the velocity components to get a perpendicular acceleration
@@ -279,21 +294,55 @@ Aerial:
     
     ret
 
-
 Grounded:
     ;de points to wBallZ + 1
     ;hl points to wBallVZ
+
+    ; now, the curve accelerations experience exponential decay
+    dec l
+    dec l
+    dec l
+    assert wBallVZ - 3 == wBallCurveX + 1
+    ld b, [hl]
+    dec l
+    ld c, [hl] ;get wBallCurveX into bc
+    ld a, CURVE_REDUCTION_COEFFICIENT >> 8
+    call SignedBCTimesA
+    ;now the reduced curve acceleration is in AH
+    ld de, wBallCurveX + 1
+    ld [de], a
+    dec e
+    ld a, h
+    ld [de], a ;store it
+
+    dec e
+    dec e
+    dec e
+    assert wBallCurveX - 3 == wBallCurveY + 1
+    ld a, [de]
+    ld b, a
+    dec e
+    ld a, [de]
+    ld c, a ;get wBallCurveY into bc
+    ld a, CURVE_REDUCTION_COEFFICIENT >> 8
+    call SignedBCTimesA
+    ;now the reduced curve acceleration is in AH
+    ld [wBallCurveY + 1], a
+    ld a, h
+    ld [wBallCurveY], a ;store them
+
+
+    
+
+
 
     ;subtract friction (constant deceleration) from the velocities
 
     ;we do this by dividing a constant representing the friction (this willv ary based on terrain) by the magnitude of our velocity.
     ;then we can multiply this by each component of our velocity to get the friction vector, which we subtract away.
 
-    ;this is 8-bit logic so we only care about the low bytes
-    ld a, l
-    sub 5
-    ld l, a ;point hl to the high byte of wBallVY
-    assert wBallVZ - 6 == wBallVY
+    ;point hl to the high byte of wBallVY
+    ld hl, wBallVY + 1
 
     ld a, [hl+] ;high byte of Y velocity
     inc l
@@ -304,7 +353,7 @@ Grounded:
 
     ld e, l
     ld d, h ;get hl into de so it can be preserved
-
+    ;de points to the high byte of wBallVX
     call GetVectorMagnitude
 
     ;now we get our friction constant
@@ -321,10 +370,10 @@ Grounded:
     assert TERRAIN_OOB == 2
     jr z, .terrainOOB
     dec a
-    error z ;no water here
+    ;error z ;no water here
     dec a
     assert TERRAIN_BUNKER == 4
-    error nz
+    ;error nz
 
 .terrainBunker
     ld hl, BUNKER_FRICTION
