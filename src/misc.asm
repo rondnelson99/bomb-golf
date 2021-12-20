@@ -35,3 +35,5 @@ SECTION "misc HRAM", HRAM
 hTempByte:: ;use this to store temporary bytes, like a backup of the accumulator. 
 	;As long as you don't call any functions before reading it back, it works fine and is fast
 	db
+hTempByte2:: ;in case you need to store two bytes
+	db

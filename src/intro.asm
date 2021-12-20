@@ -26,6 +26,15 @@ DisableScreen:
 	ld b, 1024/16 ;1024 tilemap entries divided by 16 bytes per packet
 	call pb16_unpack_block
 
+	;init the green that goes with this tilemap
+	ld hl, Map01Green
+	ld de, $9C00 + SCRN_VX_B * (STATUS_BAR_HEIGHT / 8) ;in the 9C00 tilemap, after the statusbar
+	ld a, SCRN_Y_B - (STATUS_BAR_HEIGHT / 8) ;number of rows left in the screen
+	call UnPB8ScreenWidth
+
+
+
+
 	;init other stuff
 	;call InitCrosshair
 	call InitStatusBar
@@ -88,6 +97,10 @@ MainLoop:
 ExampleTilemap:
 	INCBIN "res/Map01.maintileset.tilemap.pb16"
 ExampleTilemapEnd:
+
+SECTION "Map01 Green", ROMX
+Map01Green:
+	INCBIN "res/Map01_green.maintileset.tilemap.pb8"
 
 SECTION "main tileset", ROM0
 MainTilesetPB16:

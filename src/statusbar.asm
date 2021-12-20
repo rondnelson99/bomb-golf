@@ -28,8 +28,8 @@ InitStatusBar:: ;this should be called with the LCD off
     ;unpack the tilemap
     ld de, $9C00 ;status bar goes at the top of the second tilemap
     ld hl, StatusBarTilemap
-    ld b, SCRN_VX_B * 2 / 8 ;top 2 rows of the tilemap
-    jp UnPB8 ;tail call
+    ld a, 2 ;two rows of tilemap
+    jp UnPB8ScreenWidth ;tail call
 
 SECTION "status bar variables", WRAM0
 wPowerMeterLevel:: ; stores how much power is stored in the power meter as a count of pixels from the right end (zero power)
