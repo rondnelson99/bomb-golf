@@ -40,10 +40,14 @@ DisableScreen:
 	call InitAimArrow
 
 	; set the green corrdinates
-	ld a, 19 * 8
+	ld a, LOW((19 * 8) << 4)
 	ldh [hGreenCoordY], a
-	ld a, 3 * 8
+	ld a, HIGH((19 * 8) << 4)
+	ldh [hGreenCoordY+1], a
+	ld a, LOW((3 * 8) << 4)
 	ldh [hGreenCoordX], a
+	ld a, HIGH((3 * 8) << 4)
+	ldh [hGreenCoordX+1], a
 	
 	xor a
 	ld hl, wBallY ;this is a 12.4 coord, with the x coord after it

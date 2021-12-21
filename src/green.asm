@@ -19,6 +19,9 @@ GreenMainLoop:
 	jp nz, SwitchToMainScreen
 GreenMainLoopNoSwitch:
 
+    ;draw the ball
+    ld h, HIGH(wBallY) ;high byte of all the ball's attributes
+    call DrawBallOnGreen
 
 
 
@@ -48,9 +51,9 @@ db LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINON | LCDCF_BG8000 | LCDCF_OBJON | LCDCF_B
 
 SECTION "Green HRAM", HRAM
 
-; this is the tilemap-relative coordinates for the upper-left corner of the green
+; this is the 12.4 tilemap-relative coordinates for the upper-left corner of the green
 hGreenCoordY::
-    db
+    dw
 hGreenCoordX::
-    db
+    dw
 
