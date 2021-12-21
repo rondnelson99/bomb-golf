@@ -144,7 +144,7 @@ LYC_TABLE_END equ 1
 EXPORT LYC_TABLE_END
 
 	;to avoid breaking VRAM writes, the LYC handler must take between 87 and 109 cycles, 
-	;and should only mess with PPU registers after cycle 87 (which is guaranteed fo me mode 0 or mode 2)
+	;and should only mess with PPU registers after cycle 87 (which is guaranteed to me mode 0 or mode 2)
 	;we've already used 12 cycles
 	ldh a, [rLYC] ;check if LYC=1, because I'll use that for music drivers and resetting the LYC table index
 	dec a
