@@ -3,6 +3,9 @@ INCLUDE "defines.asm"
 BALL_Y_OFFSET equ -4 ;offset from the center of the ball to the top-left of the sprite 
 BALL_X_OFFSET equ -4
 
+EXPORT BALL_Y_OFFSET
+EXPORT BALL_X_OFFSET
+
 SHADOW_Y_OFFSET equ -3 ;offset from the center of the ball to the top-left of the shadow sprite
 SHADOW_X_OFFSET equ -3 
 

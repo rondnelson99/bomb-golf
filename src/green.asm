@@ -9,6 +9,9 @@ SwitchToGreen:: ; jump here to start viewing the green. Takes over the main loop
 
     call ClearOAM
 
+    xor a
+    ldh [hAimCursorDirection], a
+
 
     jr GreenMainLoopNoSwitch
 
@@ -25,6 +28,8 @@ GreenMainLoopNoSwitch:
     ;draw the ball
     ld h, HIGH(wBallY) ;high byte of all the ball's attributes
     call DrawBallOnGreen
+
+    call ProcessAimCursor
 
 
 
