@@ -119,6 +119,21 @@ LCDMemcpy::
 	jr nz, .loop
 	ret
 
+SECTION "clear OAM", ROM0
+ClearOAM:: ;doesn't actually zero OAM, just zeroes all the Y positions to hide the sprites
+    ld hl, wShadowOAM
+    ld b, OAM_COUNT ;how many sprites
+    xor a
+.loop
+    ld [hl+], a ; zero the Y position
+    inc l
+    inc l
+    inc l ;skip the other three bytes in the OAM entry
+    dec b
+    jr nz, .loop
+    ret
+
+
 SECTION "render sprite 12.4", ROM0
 ;Chack if a sprite is no the screen, and render it if it is.
 /* Params:
