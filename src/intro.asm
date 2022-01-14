@@ -82,6 +82,7 @@ DisableScreen:
   
 
 MainLoop:
+	call StartMainLoop
 	;first check if we need to switch to the green view. This is triggered by the user pressing select.
 	ldh a, [hPressedKeys]
 	bit PADB_SELECT, a

@@ -26,6 +26,7 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
     rst WaitVBlank ;queue up new input and stuff for the next loop
 
 SwingLoop: ;this replaces the main loop
+    call StartMainLoop
     ldh a, [hPressedKeys]
     assert PADB_A == 0
     rrca ;rotate the A button into carry
@@ -87,6 +88,7 @@ SwingLoop: ;this replaces the main loop
 	ldh [hOAMHigh], a
     rst WaitVBlank ;queue up new input and stuff for the next loop
 AimLoop: ;This also replaces the main loop
+    call StartMainLoop
     ldh a, [hPressedKeys]
     assert PADB_A == 0
     rrca ;rotate the A button into carry
@@ -130,6 +132,7 @@ AimLoop: ;This also replaces the main loop
 	ldh [hOAMHigh], a
     rst WaitVBlank ;queue up new input and stuff for the next loop
 PhysicsLoop: ; this takes over from the main loop until the ball stops moving
+    call StartMainLoop
     call UpdateBallPhysics
     ld hl, wBallY
     call ScrollToSprite124

@@ -19,6 +19,7 @@ SwitchToGreen:: ; jump here to start viewing the green. Takes over the main loop
 
 
 GreenMainLoop:
+    call StartMainLoop
     ;first check if we need to switch to the main view. This is triggered by the user pressing select.
 	ldh a, [hPressedKeys]
 	bit PADB_SELECT, a

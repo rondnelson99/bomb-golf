@@ -4,6 +4,8 @@ SECTION "Process Aim Cursor", ROM0
 ProcessAimCursor::
 
     ;read the left and right arrow keys and adjust the aim cursor accordingly
+
+    ;the cursois moves once when a key is pressed, and then again every few frames after the ket is held down for a while
     ldh a, [hPressedKeys]
     ld b, a
     ldh a, [hAimCursorDirection]
