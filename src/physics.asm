@@ -13,11 +13,13 @@ SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
     
     ld a, [wSwingAim]
+
     bit 7, a ;get the absolute value
     jr z, .positive
     cpl 
     inc a
 .positive
+
     ld c, a
     
     
@@ -62,10 +64,8 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     ld hl, wBallVX + 1 ;high byte of X velocity
     ld [hl-], a
     ld [hl], b
-    assert wBallVX - 4 == wBallVY
-    dec l
-    dec l
-    dec l
+    
+    ld l, LOW(wBallVY + 1)
     ld [hl], d
     dec l
     ld [hl], e ;store the YX velocities
@@ -113,12 +113,9 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
     inc e
     ld a, h ;high byte
     ld [de], a
-    inc e
 
-    inc e
-    inc e
-    assert wBallCurveY + 4 == wBallCurveX
 
+    ld e , LOW(wBallCurveX)
     
     xor a
     sub c
@@ -191,24 +188,18 @@ UpdateBallPhysics::
     ld [de], a
 
     ;now add the Y curve acceleration
-    dec l
-    dec l
+    ld l, LOW(wBallCurveY)
     ld a, [hl+]
-    assert wBallVY - 2 == wBallCurveY
     ld b, [hl]
-    inc l
+    ld l, LOW(wBallVY)
     add [hl]
     ld [hl+], a
     ld a, [hl]
     adc b
     ld [hl+], a
 
-    inc l
-    inc l
-    inc l
-    assert wBallVY + 4 == wBallVX
-    inc e
-    assert wBallY + 2 == wBallX
+    ld l, LOW(wBallVX + 1)
+    ld e, LOW(wBallX)
 
     ;do X velocity
     ld a, [hl-]
@@ -223,27 +214,20 @@ UpdateBallPhysics::
     ld a, [de]
     adc c
     ld [de], a
-    inc e
 
     ;now add the X curve acceleration
-    dec l
-    dec l
+    ld l, LOW(wBallCurveX)
     ld a, [hl+]
-    assert wBallVX - 2 == wBallCurveX
     ld b, [hl]
-    inc l
+    ld l, LOW(wBallVX)
     add [hl]
     ld [hl+], a
     ld a, [hl]
     adc b
     ld [hl+], a
 
-
-    assert wBallY + 4 == wBallZ
-    assert wBallVY + 6 == wBallVZ
-    ;de now points to wBallZ
-    ;hl now points to wBallVZ
-    ;both of these are 8.8 fixed point
+    ld e, LOW(wBallZ)
+    ld l, LOW(wBallVZ) ;both of these are 8.8 fixed point
 
     ;now we check whether the ball is in the air to decide what comes next
     ld a, [de]
@@ -255,7 +239,8 @@ UpdateBallPhysics::
     jr z, Grounded
 
 Aerial: 
-    dec e ;now de points to wBallZ
+    dec e
+    ;now de points to wBallZ
     ;hl points to wBallVZ
     ;now we just add them
     ld a, [de]
@@ -299,10 +284,7 @@ Grounded:
     ;hl points to wBallVZ
 
     ; now, the curve accelerations experience exponential decay
-    dec l
-    dec l
-    dec l
-    assert wBallVZ - 3 == wBallCurveX + 1
+    ld l, LOW(wBallCurveX + 1)
     ld b, [hl]
     dec l
     ld c, [hl] ;get wBallCurveX into bc
@@ -315,10 +297,7 @@ Grounded:
     ld a, h
     ld [de], a ;store it
 
-    dec e
-    dec e
-    dec e
-    assert wBallCurveX - 3 == wBallCurveY + 1
+    ld e, LOW(wBallCurveY + 1)
     ld a, [de]
     ld b, a
     dec e
@@ -345,9 +324,7 @@ Grounded:
     ld hl, wBallVY + 1
 
     ld a, [hl+] ;high byte of Y velocity
-    inc l
-    inc l
-    inc l
+    ld l, LOW(wBallVX + 1)
     ld b, [hl] ;high byte of X velocity
     assert wBallVY + 4 == wBallVX
 
@@ -422,12 +399,7 @@ Grounded:
     inc e ;gotta leave e with the same value it would have otherwise
 .noClampX
 
-    ;and do the Y friction
-    dec e
-    dec e
-    dec e
-    dec e ;point e to the high byte of wBallVY
-    assert wBallVX - 4 == wBallVY
+    ld e, LOW(wBallVY+1)
 
 
     ld a, [de]
