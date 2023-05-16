@@ -11,7 +11,13 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
     ret nc ;we're done here if they're not swinging
 
     ;otherwise, start a swing
+    ; set the swing bit of the game state
+    ldh a, [hGameState]
+    or STROKE_FLAG
+    ldh [hGameState], a
+
     xor a
+    ldh [hSwingStep], a ; start with the first swing step (power)
     ld [wPowerMeterLevel], a ;start with 0 power
 
     inc a ;ld a, 1
@@ -21,12 +27,25 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
     ;draw the power meter
     call UpdatePowerMeter
 
-    ld a, HIGH(wShadowOAM) ;queue OAM DMA
-	ldh [hOAMHigh], a
-    rst WaitVBlank ;queue up new input and stuff for the next loop
+    ret
 
-SwingLoop: ;this replaces the main loop
-    call StartMainLoop
+UpdateSwing:: ;called from main loop during a swing
+    ; Run appriopriate code based on the swing step
+    ldh a, [hSwingStep]
+    and a ;Check for step 0
+    jr z, .powerCharge
+
+    dec a ;check for step 1
+    jr z, Aim
+
+    dec a ;check for step 2
+    jr z, Physics
+
+    ;Something's wrong if we get here
+    rst Crash
+
+
+.powerCharge
     ldh a, [hPressedKeys]
     assert PADB_A == 0
     rrca ;rotate the A button into carry
@@ -55,12 +74,7 @@ SwingLoop: ;this replaces the main loop
 .skipAdjust
 
     ;draw the power meter
-    call UpdatePowerMeter
-
-    ld a, HIGH(wShadowOAM) ;queue OAM DMA
-	ldh [hOAMHigh], a
-    rst WaitVBlank
-    jr SwingLoop
+    jp UpdatePowerMeter ; tail call
 
 .finishSwingPower
     ld a, [wPowerMeterLevel]
@@ -84,11 +98,13 @@ SwingLoop: ;this replaces the main loop
     inc l
     ld [hl], d ;such optimization, very cool
 
-    ld a, HIGH(wShadowOAM) ;queue OAM DMA
-	ldh [hOAMHigh], a
-    rst WaitVBlank ;queue up new input and stuff for the next loop
-AimLoop: ;This also replaces the main loop
-    call StartMainLoop
+    ; increment the swing step
+    ld a, SWING_STEP_AIM
+    ldh [hSwingStep], a
+
+    ret
+
+Aim: 
     ldh a, [hPressedKeys]
     assert PADB_A == 0
     rrca ;rotate the A button into carry
@@ -107,12 +123,7 @@ AimLoop: ;This also replaces the main loop
     jr .finishSwingAim
 .skipAdjust
 
-    call UpdatePowerMeter
-
-    ld a, HIGH(wShadowOAM) ;queue OAM DMA
-	ldh [hOAMHigh], a
-    rst WaitVBlank
-    jr AimLoop
+    jp UpdatePowerMeter ; tail call
 
 .finishSwingAim
     ;calculate the aim as relative to the target on the power meter
@@ -128,11 +139,13 @@ AimLoop: ;This also replaces the main loop
     ldh [hTerrainType], a
     call InitBallPhysics
     
-    ld a, HIGH(wShadowOAM) ;queue OAM DMA
-	ldh [hOAMHigh], a
-    rst WaitVBlank ;queue up new input and stuff for the next loop
-PhysicsLoop: ; this takes over from the main loop until the ball stops moving
-    call StartMainLoop
+    ; increment the swing step
+    ld a, SWING_STEP_PHYSICS
+    ldh [hSwingStep], a
+
+    ret
+
+Physics: ; runs every frame until the ball stops moving
     call UpdateBallPhysics
     ld hl, wBallY
     call ScrollToSprite124
@@ -147,30 +160,35 @@ PhysicsLoop: ; this takes over from the main loop until the ball stops moving
     ld hl, wBallVY
     ld a, [hl+]
     or [hl]
-    assert wBallVY + 4 == wBallVX
-    inc l ;the ball variables are all on the same page
-    inc l
-    inc l
+    ld l, LOW(wBallVX)
     or [hl]
     inc l
     or [hl]
 
     jr z, FinishSwing
 
-    ld a, HIGH(wShadowOAM) ;queue OAM DMA
-	ldh [hOAMHigh], a
-    rst WaitVBlank
-    jr PhysicsLoop
+    ret
 
 
 
 
 FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
+    ; clear the swing bit of the game state
+    ldh a, [hGameState]
+    and ~ STROKE_FLAG
+    ldh [hGameState], a
     ret
 
 SECTION "swing HRAM", HRAM
 hTerrainType:: ;holds the terrain ID that the ball is over
     db
+hSwingStep: ; 0 = power, 1 = aim, 2 = physics
+    db
+
+SWING_STEP_POWER equ 0
+SWING_STEP_AIM equ 1
+SWING_STEP_PHYSICS equ 2
+EXPORT SWING_STEP_POWER, SWING_STEP_AIM, SWING_STEP_PHYSICS
 
 SECTION "swing variables", WRAM0
 wPowerChargeSpeed: ;charge speed in px/frame

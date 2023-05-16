@@ -78,45 +78,22 @@ DisableScreen:
 	ldh a, [hLCDC]
 	ldh [rLCDC], a
 
-
   
-
-MainLoop:
-	call StartMainLoop
-	;first check if we need to switch to the green view. This is triggered by the user pressing select.
-	ldh a, [hPressedKeys]
-	bit PADB_SELECT, a
-	jp nz, SwitchToGreen
-
-MainLoopNoSwitch:
-
-	call CheckScrolling
-
-	;check if the player is trying to swing
-	call CheckSwing
-
-	
-
-	;Process objects
-	;call ProcessCrosshair
-	call DrawBall
-	call CheckAiming
-
-
-
-
-	ld a, HIGH(wShadowOAM)
-	ldh [hOAMHigh], a
-.end
-	rst WaitVBlank
-	jr MainLoop
+	xor a
+	ldh [hGameState], a ; initialize to a neutral game state
+	jp MainLoop
 
 
 SwitchToMainScreen::
+	; clear the green flag in the game state
+	ldh a, [hGameState]
+	and ~ GREEN_FLAG
+	ldh [hGameState], a
+
 	;setup the LYC interrupt
 	ld a, HIGH(StatusBarLYCTable)
 	ldh [hLYCTableHigh], a
-	jr MainLoopNoSwitch
+	ret
 
 	
 

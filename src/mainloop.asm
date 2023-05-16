@@ -1,7 +1,7 @@
 INCLUDE "defines.asm"
 SECTION "Start Main Loop", ROM0
-;this function is called at the start of every main loop in the game. It handles reading input mostly.
-StartMainLoop::
+
+MainLoop::
     ;read input
     ld c, LOW(rP1)
 	ld a, $20 ; Select D-pad
@@ -66,7 +66,7 @@ ENDR
     ld [hl+], a
     dec c
     jr nz, .loop
-    ret
+    jr .doneinput
 
 
     ;alternate end of loop
@@ -80,13 +80,62 @@ ENDR
     inc l ;move to the next byte
     dec c
     jr nz, .loop
-    ret
+    jr .doneinput
 
 .perhapsReset
 	ldh a, [hCanSoftReset]
 	and a
 	jr z, .dontReset
 	jp Reset
+
+.doneinput
+	; Now, call an appropriate function based on the game state
+	ldh a, [hGameState]
+
+	cp a, 0 ; neither green nor stroke
+	jr nz, .notIdleCourse
+	call IdleCourse
+	jr .doneMainLoop
+
+.notIdleCourse
+	cp a, STROKE_FLAG ; off-green stroke
+	jr nz, .notStroke
+	call UpdateSwing
+	jr .doneMainLoop
+
+.notStroke
+	cp a, GREEN_FLAG ; on-green view
+	error nz ; If we're in an invalid state, then crash
+	call GreenFunctions
+	jr .doneMainLoop
+
+
+
+
+.doneMainLoop
+
+
+
+	ld a, HIGH(wShadowOAM) ;queue OAM DMA
+	ldh [hOAMHigh], a
+	rst WaitVBlank
+	jp MainLoop
+
+SECTION "Idle course functions", ROM0
+IdleCourse:
+	;first check if we need to switch to the green view. This is triggered by the user pressing select.
+	ldh a, [hPressedKeys]
+	bit PADB_SELECT, a
+	jp nz, SwitchToGreen
+	call CheckScrolling
+
+	;check if the player is trying to swing
+	call CheckSwing
+
+	;Process objects
+	;call ProcessCrosshair
+	call DrawBall
+	jp CheckAiming ;tail call
 
 
 
@@ -107,4 +156,16 @@ hFramesHeldRight:: db
 hFramesHeldLeft:: db
 hFramesHeldUp:: db
 hFramesHeldDown:: db
+
+; Holds a set of flags defining what is currently happening in the game.
+/*
+The bits are as follows:
+0: 1 if viewing the green, 0 if looking at the whole course
+1: 1 if the user is in a stroke, 0 if not
+other bits are unused 
+*/
+hGameState:: db
+GREEN_FLAG  equ %00000001
+STROKE_FLAG equ %00000010
+EXPORT GREEN_FLAG, STROKE_FLAG
 

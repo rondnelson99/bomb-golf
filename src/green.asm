@@ -1,6 +1,6 @@
 INCLUDE "defines.asm"
 
-SECTION "Green Main Loop", ROM0
+SECTION "Switch To Green", ROM0
 
 SwitchToGreen:: ; jump here to start viewing the green. Takes over the main loop.
     ; since the green has a different tilemap, we need to switch the LYC table
@@ -12,35 +12,27 @@ SwitchToGreen:: ; jump here to start viewing the green. Takes over the main loop
     xor a
     ldh [hAimCursorDirection], a
 
+    ;set the green flag in the status byte
+    ldh a, [hGameState]
+    or a, GREEN_FLAG
+    ldh [hGameState], a
+    ret
 
-    jr GreenMainLoopNoSwitch
+SECTION "Green Funcitons", ROM0
 
 
-
-
-GreenMainLoop:
-    call StartMainLoop
+GreenFunctions:: ; Called every frame when idling on the green
     ;first check if we need to switch to the main view. This is triggered by the user pressing select.
 	ldh a, [hPressedKeys]
 	bit PADB_SELECT, a
 	jp nz, SwitchToMainScreen
-GreenMainLoopNoSwitch:
 
     ;draw the ball
     ld h, HIGH(wBallY) ;high byte of all the ball's attributes
     call DrawBallOnGreen
 
-    call ProcessAimCursor
+    jp ProcessAimCursor ; tail call
 
-
-
-
-
-    ld a, HIGH(wShadowOAM)
-	ldh [hOAMHigh], a
-.end
-	rst WaitVBlank
-	jr GreenMainLoop
 
 
 
