@@ -166,6 +166,19 @@ ENDR
 
 SECTION "Update Ball Physics", ROM0
 
+/* The basic structure for the physics engine is this: 
+ - Apply the XY velocities to the ball position
+ - Apply the XY curve accelerations to the velocities
+
+ - Check whether the ball is grounded, and branch
+ if airborne:
+    - Apply the Z velocity to the Z position
+    - Apply the Gravity acceleration to the Z velocity 
+if grounded:
+    - Curve accelerations decrese exponentially
+    - The stored Terrain Type variable is used to determine the friction coefficient
+    - Friction is applied as a constant deceleration to the velocities
+*/
 UpdateBallPhysics:: 
     ;add the 4.12 (ignore the low byte) velocities to the 12.4 positions
 
