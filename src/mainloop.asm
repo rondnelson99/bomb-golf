@@ -104,7 +104,7 @@ ENDR
 	jr .doneMainLoop
 
 .notStroke
-	cp a, GREEN_FLAG ; on-green view
+	cp a, GREEN_FLAG ; on-green idle view
 	error nz ; If we're in an invalid state, then crash
 	call GreenFunctions
 	jr .doneMainLoop

@@ -29,6 +29,7 @@ CheckSwing:: ;checks if the user is trying to start a swing. If so, it takes ove
 
     ret
 
+SECTION "Update Swing", ROM0
 UpdateSwing:: ;called from main loop during a swing
     ; Run appriopriate code based on the swing step
     ldh a, [hSwingStep]

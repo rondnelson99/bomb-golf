@@ -243,22 +243,3 @@ GetVectorMagnitude:: ;uses pythagorean theorem and square/sqrt tables
 
     ret
 
-
-
-
-
-
-
-
-
-
-
-
-
-SECTION "BC times A", ROM0
-;unsigned 8 x 16 multiplication, 16-bit output. Should also work if BC is signed.
-
-
-
-    
-
