@@ -360,10 +360,24 @@ Grounded:
     assert TERRAIN_OOB == 2
     jr z, .terrainOOB
     dec a
-    ;error z ;no water here
+    jr z, .terrainBunker ; temporary since water will eventually be handled differently
     dec a
     assert TERRAIN_BUNKER == 4
-    ;error nz
+    jr z, .terrainBunker
+
+    ; if the terrain is between $50 and $5F, it is a green slope, so it has the same friction as regular green
+
+    assert TERRAIN_GREEN_STEEP_RIGHT == $50
+    assert TERRAIN_GREEN_SLOPE_UP_RIGHT == $5F
+    ldh a, [hTerrainType]
+    cp TERRAIN_GREEN_STEEP_RIGHT + 1
+    error nc
+    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    error c
+
+    jr .terrainGreen
+
+    
 
 .terrainBunker
     ld hl, BUNKER_FRICTION
@@ -435,8 +449,6 @@ Grounded:
     ld [de], a
     inc e ;gotta leave e with the same value it would have otherwise
 .noClampY
-
-
 
     ret
 

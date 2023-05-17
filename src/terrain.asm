@@ -9,7 +9,7 @@ LookUpTerrain:: ;this takes a tilemap-relative X position and tilemap-relative Y
     ld c, a
     ld a, [hl+] ;high byte
     cp 16 ;make sure it's within the 256 px tilemap range
-    jr nc, .terrainOutOfRange
+    jp nc, .terrainOutOfRange
     xor c
     and $0f
     xor c ;masked merge
@@ -153,7 +153,22 @@ LookUpTerrain:: ;this takes a tilemap-relative X position and tilemap-relative Y
     wait_vram
 
     ld a, [hl]
+    ; if this is a green slope tile (ID in range $50-$5F), then we return it as teh terrain type
+    ; otherwise, we just return TERRAIN_GREEN
+    assert TERRAIN_GREEN_STEEP_RIGHT + 15 == TERRAIN_GREEN_SLOPE_UP_RIGHT
+    cp TERRAIN_GREEN_STEEP_RIGHT + 1
+    jr nc, .regularGreenTerrain
+    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    jr c, .regularGreenTerrain
+
+    ;if we get here, then the tile is a green slope tile
     ret
+
+.regularGreenTerrain
+    ld a, TERRAIN_GREEN
+    ret
+
+
 
 .terrainOutOfRange ;when the ball is outside the course area
     ld a, TERRAIN_OOB
@@ -193,6 +208,8 @@ TERRAIN_GREEN_SLOPE_UP equ $5E
 TERRAIN_GREEN_SLOPE_UP_RIGHT equ $5F
 
 export TERRAIN_NONE, TERRAIN_GREEN, TERRAIN_OOB, TERRAIN_WATER, TERRAIN_BUNKER
+export TERRAIN_GREEN_STEEP_RIGHT, TERRAIN_GREEN_STEEP_DOWN_RIGHT, TERRAIN_GREEN_STEEP_DOWN, TERRAIN_GREEN_STEEP_DOWN_LEFT, TERRAIN_GREEN_STEEP_LEFT, TERRAIN_GREEN_STEEP_UP_LEFT, TERRAIN_GREEN_STEEP_UP, TERRAIN_GREEN_STEEP_UP_RIGHT
+export TERRAIN_GREEN_SLOPE_RIGHT, TERRAIN_GREEN_SLOPE_DOWN_RIGHT, TERRAIN_GREEN_SLOPE_DOWN, TERRAIN_GREEN_SLOPE_DOWN_LEFT, TERRAIN_GREEN_SLOPE_LEFT, TERRAIN_GREEN_SLOPE_UP_LEFT, TERRAIN_GREEN_SLOPE_UP, TERRAIN_GREEN_SLOPE_UP_RIGHT
 
 SECTION "terrain list", ROM0, ALIGN[8, $80] ;start at $80 since that's where the course tiles start
 TerrainList:
