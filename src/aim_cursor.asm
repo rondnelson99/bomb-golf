@@ -2,6 +2,8 @@ INCLUDE "defines.asm"
 
 AUTO_REPEAT_DELAY equ 20 ; minimum number of frames to hold a button down for before it starts repeating
 AUTO_REPEAT_INTERVAL_MASK equ %0 ; when frames held ANDed this is zero, process a new input
+AIM_CURSOR_DISTANCE equ 35 ;number of pixels from the ball to the aim cursor
+AIM_CURSOR_PRESCALER equ 2 ; The cursor direction is also used for physics. 
 SECTION "Process Aim Cursor", ROM0
 
 ProcessAimCursor::
@@ -36,13 +38,21 @@ ProcessAimCursor::
 .moveRight
     inc [hl]
 .notRight
-    
+    assert AIM_CURSOR_PRESCALER == 2
     ;now, draw convert that angle to a coordinate pair
     ld l, [hl]
     ld h, HIGH(AimCursorYTable)
-    ld b, [hl]
+    ld a, [hl]
+    sra a
+    add BALL_Y_OFFSET
+    ld b, a
+
     inc h ;move to the cos table
-    ld c, [hl]
+    ld a, [hl]
+    sra a
+    add BALL_X_OFFSET
+    ld c, a
+
 
     ld hl, wBallY
     ld de, OBJ_CROSSHAIR
@@ -58,12 +68,12 @@ ProcessAimCursor::
 
 
 
-AIM_CURSOR_DISTANCE equ 35 ;number of pixels from the ball to the aim cursor
-    
+
+;We use a larger magnitude in the table, and then shift to get the smaller offset for visuals
 SECTION "Aim Cursor Sin, Cos Table", ROM0, ALIGN[8]
 AimCursorYTable::
 FOR I, 0, 1.0, 1.0/256
-    db ROUND(MUL(COS(I),AIM_CURSOR_DISTANCE*-1.0))>>16 + BALL_Y_OFFSET 
+    db ROUND(MUL(COS(I),AIM_CURSOR_DISTANCE*-1.0*AIM_CURSOR_PRESCALER))>>16 
     ;Y offset from the ball's center to the aim cursor for each angle
 ENDR
 
@@ -71,7 +81,7 @@ assert LOW(@) == 0
 
 AimCursorXTable::
 FOR I, 0, 1.0, 1.0/256
-    db ROUND(MUL(SIN(I),AIM_CURSOR_DISTANCE*1.0))>>16 + BALL_X_OFFSET
+    db ROUND(MUL(SIN(I),AIM_CURSOR_DISTANCE*1.0*AIM_CURSOR_PRESCALER))>>16
     ;X offset from the ball's center to the aim cursor for each angle
 ENDR
     
