@@ -156,10 +156,10 @@ LookUpTerrain:: ;this takes a tilemap-relative X position and tilemap-relative Y
     ; if this is a green slope tile (ID in range $50-$5F), then we return it as teh terrain type
     ; otherwise, we just return TERRAIN_GREEN
     assert TERRAIN_GREEN_STEEP_RIGHT + 15 == TERRAIN_GREEN_SLOPE_UP_RIGHT
-    cp TERRAIN_GREEN_STEEP_RIGHT + 1
-    jr nc, .regularGreenTerrain
-    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    cp TERRAIN_GREEN_STEEP_RIGHT
     jr c, .regularGreenTerrain
+    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    jr nc, .regularGreenTerrain
 
     ;if we get here, then the tile is a green slope tile
     ret

@@ -9,6 +9,9 @@ GREEN_FRICTION equ 150 ;friction strength for the green
 OOB_FRICTON equ 300 ;friction strength for OOB areas
 AIM_COEFFICIENT equ 0.2 ;defines the strength of the curve acceleration
 CURVE_REDUCTION_COEFFICIENT equ 0.9 ;the curve accelerations are multiplied by this every frame when the ball is grounded
+STEEP_ACCELERATION_STRENGTH  equ 7.9 ;the strength of the "steep" slope acceleration (0-1)
+SLOPE_ACCELERATION_STRENGTH equ 2.0 ;the strength of the "slope" slope acceleration (0-1)
+
 SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
     
@@ -160,8 +163,8 @@ SECTION "Direction Ratio Table", ROM0, ALIGN[8] ;this represents a fractional (0
 ;note that 0 is vertical, not rightward.
 DirectionTableLUT:
 FOR I, 16
-    db round(mul(-127.0,cos(I * (65536 / 16) <<16 ))) >>16
-    db round(mul(127.0,sin(I * (65536 / 16) <<16 ))) >>16
+    db round(mul(-127.0,cos(I * (1.0 / 16)))) >>16
+    db round(mul(127.0,sin(I * (1.0 / 16)))) >>16
 ENDR
 
 SECTION "Update Ball Physics", ROM0
@@ -323,9 +326,53 @@ Grounded:
     ld a, h
     ld [wBallCurveY], a ;store them
 
+    ; next, we check if the ball is on a green slope, and apply appropriate slope acceleration if so
 
-    
+    assert TERRAIN_GREEN_STEEP_RIGHT == $50
+    assert TERRAIN_GREEN_SLOPE_UP_RIGHT == $5F
+    ldh a, [hTerrainType]
+    sub TERRAIN_GREEN_STEEP_RIGHT
+    jr c, .doneGreenSlope
+    cp TERRAIN_GREEN_SLOPE_UP_RIGHT - TERRAIN_GREEN_STEEP_RIGHT
+    jr nc, .doneGreenSlope
 
+    ; if we get here, then the ball is on a green slope, so we need to apply a slope acceleration
+
+    ; We will fetch the slope acceleration from a table, which will be indexed by the terrain type
+    add a, a ;double the index since each entry is 2 bytes
+    ld d, HIGH(SlopeAccelerationTable)
+    ld e, a
+    ld hl, wBallVY ; low byte of Y velocity
+
+    ; add the y acceleration
+    ld a, [de] ;get the low byte of Y acceleration
+    ld b, a ;store it
+    add [hl] ;add it to the Y velocity
+    ld [hl+], a
+    ld a, 0
+    adc [hl] ;add it to the high byte of the Y velocity
+    bit 7, b ;check the sign of the acceleration
+    jr z, .positiveY
+    dec a
+.positiveY
+    ld [hl], a
+
+    ;now do the same for the X acceleration
+    inc e
+    ld l, LOW(wBallVX)
+    ld a, [de]
+    ld b, a
+    add [hl]
+    ld [hl+], a
+    ld a, 0
+    adc [hl]
+    bit 7, b
+    jr z, .positiveX
+    dec a
+.positiveX
+    ld [hl], a
+
+.doneGreenSlope
 
 
     ;subtract friction (constant deceleration) from the velocities
@@ -370,10 +417,10 @@ Grounded:
     assert TERRAIN_GREEN_STEEP_RIGHT == $50
     assert TERRAIN_GREEN_SLOPE_UP_RIGHT == $5F
     ldh a, [hTerrainType]
-    cp TERRAIN_GREEN_STEEP_RIGHT + 1
-    error nc
-    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    cp TERRAIN_GREEN_STEEP_RIGHT
     error c
+    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    error nc
 
     jr .terrainGreen
 
@@ -450,7 +497,26 @@ Grounded:
     inc e ;gotta leave e with the same value it would have otherwise
 .noClampY
 
+
+    ; now, de still points to the ball variable are, but not hl. 
+    
+
     ret
+
+SECTION "Slope Acceleration Table", ROM0, ALIGN[8]
+; These are 0.8 fixed point signed numbers which get added to the velocities when the ball is on a slope
+; Each entry is Y acceleration followed by X acceleration
+SlopeAccelerationTable:
+    FOR I, 0, 1.0, 1.0 / 8
+        db LOW(mul(STEEP_ACCELERATION_STRENGTH, sin(I)) >> 12)
+        db LOW(mul(STEEP_ACCELERATION_STRENGTH, cos(I)) >> 12)
+    ENDR
+    FOR I, 0, 1.0, 1.0 / 8
+        db LOW(mul(SLOPE_ACCELERATION_STRENGTH, sin(I)) >> 12)
+        db LOW(mul(SLOPE_ACCELERATION_STRENGTH, cos(I)) >> 12)
+    ENDR
+
+
 
 
 
