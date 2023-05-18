@@ -1,27 +1,44 @@
 INCLUDE "defines.asm"
+
+AUTO_REPEAT_DELAY equ 20 ; minimum number of frames to hold a button down for before it starts repeating
+AUTO_REPEAT_INTERVAL_MASK equ %0 ; when frames held ANDed this is zero, process a new input
 SECTION "Process Aim Cursor", ROM0
 
 ProcessAimCursor::
 
     ;read the left and right arrow keys and adjust the aim cursor accordingly
-
+    ld hl, hAimCursorDirection
     ;the cursois moves once when a key is pressed, and then again every few frames after the ket is held down for a while
     ldh a, [hPressedKeys]
     ld b, a
-    ldh a, [hAimCursorDirection]
-    bit PADB_LEFT, b
-    jr z, .notLeft
-    dec a
+    bit PADB_LEFT, b ; check if the left arrow key is pressed this frame
+    jr nz, .moveLeft
+    ; now, check if left has been held for longer than a threshold
+    ldh a, [hFramesHeldLeft]
+    cp AUTO_REPEAT_DELAY
+    jr c, .notLeft
+    ;if so, check if it's time to move again
+    and AUTO_REPEAT_INTERVAL_MASK
+    jr nz, .notLeft
+
+.moveLeft    
+    dec [hl]
+
 .notLeft
     bit PADB_RIGHT, b
-    jr z, .notRight
-    inc a
+    jr nz, .moveRight
+    ldh a, [hFramesHeldRight]
+    cp AUTO_REPEAT_DELAY
+    jr c, .notRight
+    and AUTO_REPEAT_INTERVAL_MASK
+    jr nz, .notRight
+
+.moveRight
+    inc [hl]
 .notRight
-    ;store the new cursor angle
-    ldh [hAimCursorDirection], a
     
     ;now, draw convert that angle to a coordinate pair
-    ld l, a
+    ld l, [hl]
     ld h, HIGH(AimCursorYTable)
     ld b, [hl]
     inc h ;move to the cos table
@@ -45,16 +62,16 @@ AIM_CURSOR_DISTANCE equ 35 ;number of pixels from the ball to the aim cursor
     
 SECTION "Aim Cursor Sin, Cos Table", ROM0, ALIGN[8]
 AimCursorYTable::
-FOR I, 256
-    db ROUND(MUL(COS(I<<24),AIM_CURSOR_DISTANCE*-1.0))>>16 + BALL_Y_OFFSET 
+FOR I, 0, 1.0, 1.0/256
+    db ROUND(MUL(COS(I),AIM_CURSOR_DISTANCE*-1.0))>>16 + BALL_Y_OFFSET 
     ;Y offset from the ball's center to the aim cursor for each angle
 ENDR
 
 assert LOW(@) == 0
 
 AimCursorXTable::
-FOR I, 256
-    db ROUND(MUL(SIN(I<<24),AIM_CURSOR_DISTANCE*1.0))>>16 + BALL_X_OFFSET
+FOR I, 0, 1.0, 1.0/256
+    db ROUND(MUL(SIN(I),AIM_CURSOR_DISTANCE*1.0))>>16 + BALL_X_OFFSET
     ;X offset from the ball's center to the aim cursor for each angle
 ENDR
     

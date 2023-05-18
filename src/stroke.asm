@@ -135,9 +135,7 @@ Aim:
     call ClearArrowSprite
     ; now get ready to move to the physics loop
     
-    ld hl, wBallY
-    call LookUpTerrain
-    ldh [hTerrainType], a
+
     call InitBallPhysics
     
     ; increment the swing step
@@ -151,11 +149,6 @@ Physics: ; runs every frame until the ball stops moving
     ld hl, wBallY
     call ScrollToSprite124
     call DrawBall
-
-    ;update the terrain
-    ld hl, wBallY
-    call LookUpTerrain
-    ldh [hTerrainType], a
 
     ;check if the velocity is zero
     ld hl, wBallVY

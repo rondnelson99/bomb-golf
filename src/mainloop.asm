@@ -74,8 +74,8 @@ ENDR
     ;if the button is pressed, add 1 to the counter
     inc [hl]
     jr nz, .noOverflow
-    ;if it overflowed, decrement it to clamp at 255
-    dec [hl]
+    ;if it overflowed, set bit 7 again as teh overflow flag
+    set 7, [hl]
 .noOverflow
     inc l ;move to the next byte
     dec c
@@ -158,7 +158,8 @@ SECTION "Main Loop HRAM", HRAM
 hHeldKeys:: db
 hPressedKeys:: db
 
-; count of how many frames each button has been held for. It caps at 255 so it doesn't overflow.
+; bits 0-6 count of how many frames each button has been held for. 
+; Bit 7 is set when it overflows, and only clears when the button is released.
 hFramesHeldA:: db
 hFramesHeldB:: db
 hFramesHeldSelect:: db
