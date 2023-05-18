@@ -1,6 +1,8 @@
 INCLUDE "defines.asm"
 
 ARROW_DIRECTION_INIT equ $FF ;an arrow direction of $ff indicates that the direction needs to be initialized
+AUTO_REPEAT_DELAY equ 20 ; minimum number of frames to hold a button down for before it starts repeating
+AUTO_REPEAT_INTERVAL_MASK equ %111 ; when frames held ANDed this is zero, process a new input
 
 SECTION "Init Aim Arrow", ROM0
 InitAimArrow::
@@ -26,8 +28,17 @@ CheckAiming:: ;reads player input and adjusts the aiming direction if nescessary
     ld b, a
     ld hl, wArrowFacingDirection
 
-    bit PADB_LEFT, b
-    jr z, .notLeft
+    bit PADB_LEFT, b ;if they pressed left, move the arrow
+    jr nz, .left
+    ; Otherwise, check if the key had been held long enough 
+    ; AND has the correct modulo for an auto-repeat
+    ldh a, [hFramesHeldLeft]
+    cp AUTO_REPEAT_DELAY
+    jr c, .notLeft
+
+    and AUTO_REPEAT_INTERVAL_MASK
+    jr nz, .notLeft
+
 .left
     ld a, [hl]
     dec a ;move counterclockwise one direction
@@ -37,7 +48,14 @@ CheckAiming:: ;reads player input and adjusts the aiming direction if nescessary
 
 .notLeft
     bit PADB_RIGHT, b
-    jr z, .notRight
+    jr nz, .right
+
+    ldh a, [hFramesHeldRight]
+    cp AUTO_REPEAT_DELAY
+    jr c, .notRight
+    and AUTO_REPEAT_INTERVAL_MASK
+    jr nz, .notRight
+    
 .right
     ld a, [hl]
     inc a ;move clockwise one direction
@@ -45,7 +63,6 @@ CheckAiming:: ;reads player input and adjusts the aiming direction if nescessary
     ld [hl], a
 
 .notRight
-
 
 UpdateAimArrow:: ;draws an arrow from the golf ball in whatever ditection it's facing
     ;check if the tile in VRAM needs updating
