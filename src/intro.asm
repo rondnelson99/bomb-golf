@@ -84,21 +84,6 @@ DisableScreen:
 	jp MainLoop
 
 
-SwitchToMainScreen::
-	; clear the green flag in the game state
-	ldh a, [hGameState]
-	and ~ GREEN_FLAG
-	ldh [hGameState], a
-
-	;setup the LYC interrupt
-	ld a, HIGH(StatusBarLYCTable)
-	ldh [hLYCTableHigh], a
-	ret
-
-	
-
-
-
 
 ExampleTilemap:
 	INCBIN "res/Map01.maintileset.tilemap.pb16"
@@ -118,7 +103,7 @@ SECTION "status bar LYC table", ROM0, ALIGN[8] ;this table will be read by the L
 	; 2: value to write to LCDC on the *CURRENT* LYC scanline
 	; this can repeat up to 128 times, but the table must start on a page boundary
 	; at the end of the table, the next scanline number should be 1.
-StatusBarLYCTable:
+StatusBarLYCTable::
     db 8 - 1 ;at line 8 we disable sprites
     db 0 ; this is the argument for LYC 0. It isn't used rn
 

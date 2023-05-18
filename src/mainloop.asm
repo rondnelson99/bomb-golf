@@ -89,6 +89,18 @@ ENDR
 	jp Reset
 
 .doneinput
+
+
+	; Any time during Gameplay, pressing Select will toggle the green view
+	ld a, [hPressedKeys]
+	bit PADB_SELECT, a
+	call nz, ToggleGreen
+
+	; Any time during Gameplay, we update the terrain variable
+	ld hl, wBallY
+	call LookUpTerrain
+	ldh [hTerrainType], a
+
 	; Now, call an appropriate function based on the game state
 	ldh a, [hGameState]
 
@@ -105,12 +117,15 @@ ENDR
 
 .notStroke
 	cp a, GREEN_FLAG ; on-green idle view
-	error nz ; If we're in an invalid state, then crash
+	jr nz, .notIdleGreen
 	call GreenFunctions
 	jr .doneMainLoop
 
-
-
+.notIdleGreen
+	cp a, GREEN_FLAG  | STROKE_FLAG ; on-green stroke
+	error nz ; crash if we're in an invalid state
+	call UpdateSwingOnGreen
+	jr .doneMainLoop
 
 .doneMainLoop
 
@@ -123,10 +138,6 @@ ENDR
 
 SECTION "Idle course functions", ROM0
 IdleCourse:
-	;first check if we need to switch to the green view. This is triggered by the user pressing select.
-	ldh a, [hPressedKeys]
-	bit PADB_SELECT, a
-	jp nz, SwitchToGreen
 	call CheckScrolling
 
 	;check if the player is trying to swing

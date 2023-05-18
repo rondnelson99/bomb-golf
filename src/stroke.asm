@@ -180,6 +180,15 @@ FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
     ldh [hGameState], a
     ret
 
+SECTION "Update Update Swing On Green", ROM0
+UpdateSwingOnGreen:: ;called from main loop during a swing
+    ; Run appriopriate code based on the swing step
+    ;draw the ball
+    ld h, HIGH(wBallY) ;high byte of all the ball's attributes
+    call DrawBallOnGreen
+    ;ld b, b ; Not Implemented
+    jp UpdateBallPhysics
+
 SECTION "swing HRAM", HRAM
 hTerrainType:: ;holds the terrain ID that the ball is over
     db
