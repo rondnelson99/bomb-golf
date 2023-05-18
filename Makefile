@@ -124,22 +124,22 @@ VPATH := $(SRCDIR)
 
 $(RESDIR)/%.1bpp: $(RESDIR)/%.png
 	@$(MKDIR_P) $(@D)
-	$(RGBGFX) -d 1 -o $@ $<
+	$(RGBGFX) -d 1 -c embedded -o $@ $<
 
 # make 2bpp tiles using RGBGFX
 $(RESDIR)/%.2bpp: $(RESDIR)/%.png
 	@$(MKDIR_P) $(@D)
-	$(RGBGFX) -o $@ $<
+	$(RGBGFX) -c embedded -o $@ $<
 
 # this is for column-major 1bpp tiles
 $(RESDIR)/%.v1bpp: $(RESDIR)/%.png
 	@$(MKDIR_P) $(@D)
-	$(RGBGFX) -Z -d 1 -o $@ $<
+	$(RGBGFX) -Z -d 1 -c embedded -o $@ $<
 
 # this is for column-major 2bpp tiles
 $(RESDIR)/%.v2bpp: $(RESDIR)/%.png
 	@$(MKDIR_P) $(@D)
-	$(RGBGFX) -Z -o $@ $<
+	$(RGBGFX) -Z -c embedded -o $@ $<
 
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
