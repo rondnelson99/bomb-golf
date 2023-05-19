@@ -2,6 +2,7 @@ INCLUDE "defines.asm"
 
 GRAVITY equ -1.5 >>12 ;acceration of gravity in shadow pixels per frame, 8.8 fixed point
 POWER equ 0.25 ; shot power in a range from 0 to 1. Must be less than 1.
+GREEN_POWER equ 0.5 ; shot power from the green in a range from 0 to 1. Must be less than 1.
 BUNKER_POWER_COEFFICIENT equ 0.5 ;the shot's power is multiplied by this when in a bunker. Range 0-1
 REGULAR_FRICTION equ 200 ;16-bit friction strength for normal ground
 BUNKER_FRICTION equ 800 ;friction strength for bunkers
@@ -137,7 +138,72 @@ InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and 
 
     ret
 
-    
+SECTION "Init Ball Physics on Green", ROM0
+/* here's the basic plan:
+ - look up the shot power in a special power curve table for the green
+ - the the direction used for the cursor to split the power into X and Y components
+ - set other quanitiies (aim, Z position, etc) to 0
+ much simpler than the normal init
+*/
+InitBallPhysicsOnGreen::
+    ld a, [wSwingPower] ; get the shot power
+    ld h, HIGH(GreenPowerCurveLUT)
+    ld l, a ;use it as an index into the power curve table
+    ld c, [hl] ;get the curved power
+    ; now, we need to split this into X and Y components
+    ldh a, [hAimCursorDirection]
+    ld h, HIGH(AimCursorXTable)
+    ld l, a ; get the sin and cos components of the direction
+    ld e, [hl] ; get the X component (will be preserved)
+    dec h
+    assert AimCursorXTable - 256 == AimCursorYTable
+    ld h, [hl] ; get the Y component 
+
+    call SignedHTimesC ;multiply the power by the Y component
+    ; hl now contains the Y velocity in signed 4.12
+    ld d, h
+    ld h, e
+    ld e, l ; move VY into de and the X multiplier into h
+
+    call SignedHTimesC ;multiply the power by the X component
+    ; hl now contains the X velocity in signed 4.12
+    ld a, l
+    ld b, h
+    ; now we have the initial Y and X velocities in de and ba, respectively
+    ld hl, wBallVY
+    ld [hl], e
+    inc l
+    ld [hl], d ;store the Y velocity
+    ld l, LOW(wBallVX)
+    ld [hl+], a
+    ld [hl], b ;store the X velocity
+
+    ; now we just need to sero other quantities
+    xor a
+    ld l, LOW(wBallZ)
+    ld [hl+], a
+    ld [hl+], a ;set the Z position to 0
+    assert wBallZ + 2 == wBallCurveY
+    ld [hl+], a
+    ld [hl+], a ;zero wBallCurveY
+    ld l, LOW(wBallCurveX)
+    ld [hl+], a
+    ld [hl+], a ;zero wBallCurveX
+    ld l, LOW(wBallVZ)
+    ld [hl+], a
+    ld [hl+], a ;zero wBallVZ
+
+    ret
+
+
+
+
+
+SECTION "Green power curve table", ROM0, ALIGN[8] ;use a table to define a power curve so that I can easily make any function I want
+GreenPowerCurveLUT: ; this is 4.4 unsigned fixed point
+FOR I, METER_SIZE
+    db div(mul(I*1.0, POWER<<4), METER_SIZE*1.0) >>12   ;linear curve
+ENDR
 
 SECTION "Aim Curve Scaling Table", ROM0, ALIGN[8] ; This scales the aim curve acceleration 
 

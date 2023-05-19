@@ -103,6 +103,16 @@ ENDR
 
 	; Now, call an appropriate function based on the game state
 	ldh a, [hGameState]
+	and STROKE_FLAG
+	jr z, .notStroke
+.stroke
+	call UpdateSwing
+	jr .done
+.notStroke
+	call CheckSwing
+.done
+	
+	ldh a, [hGameState]
 
 	cp a, 0 ; neither green nor stroke
 	jr nz, .notIdleCourse
@@ -111,11 +121,12 @@ ENDR
 
 .notIdleCourse
 	cp a, STROKE_FLAG ; off-green stroke
-	jr nz, .notStroke
-	call UpdateSwing
+	jr nz, .notOffGreenStroke
+	call DrawBall
 	jr .doneMainLoop
+	
 
-.notStroke
+.notOffGreenStroke
 	cp a, GREEN_FLAG ; on-green idle view
 	jr nz, .notIdleGreen
 	call GreenFunctions
@@ -124,7 +135,7 @@ ENDR
 .notIdleGreen
 	cp a, GREEN_FLAG  | STROKE_FLAG ; on-green stroke
 	error nz ; crash if we're in an invalid state
-	call UpdateSwingOnGreen
+	call DrawBallOnGreen
 	jr .doneMainLoop
 
 .doneMainLoop
@@ -140,8 +151,7 @@ SECTION "Idle course functions", ROM0
 IdleCourse:
 	call CheckScrolling
 
-	;check if the player is trying to swing
-	call CheckSwing
+	
 
 	;Process objects
 	;call ProcessCrosshair
@@ -178,6 +188,8 @@ other bits are unused
 */
 hGameState:: db
 GREEN_FLAG  equ %00000001
+GREEN_FLAGB equ 0
 STROKE_FLAG equ %00000010
+STROKE_FLAGB equ 1
 EXPORT GREEN_FLAG, STROKE_FLAG
 

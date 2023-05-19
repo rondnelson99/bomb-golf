@@ -99,10 +99,20 @@ UpdateSwing:: ;called from main loop during a swing
     inc l
     ld [hl], d ;such optimization, very cool
 
-    ; increment the swing step
+    ; go to the next swing step. This is aiming, unless the player is on the green, in which case it's physics
+    ldh a, [hGameState]
+    and GREEN_FLAG
+    jr nz, .onGreen
+.notGreen
     ld a, SWING_STEP_AIM
     ldh [hSwingStep], a
+    ret
 
+.onGreen
+    call InitBallPhysicsOnGreen
+
+    ld a, SWING_STEP_PHYSICS
+    ldh [hSwingStep], a
     ret
 
 Aim: 
@@ -146,9 +156,15 @@ Aim:
 
 Physics: ; runs every frame until the ball stops moving
     call UpdateBallPhysics
-    ld hl, wBallY
+
+    ; if we're not on the green right now, scroll to the ball
+    ldh a, [hGameState]
+    and GREEN_FLAG
+    jr nz, .onGreen
+    ld hl, wBallY 
     call ScrollToSprite124
-    call DrawBall
+.onGreen
+    
 
     ;check if the velocity is zero
     ld hl, wBallVY
@@ -173,14 +189,6 @@ FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
     ldh [hGameState], a
     ret
 
-SECTION "Update Update Swing On Green", ROM0
-UpdateSwingOnGreen:: ;called from main loop during a swing
-    ; Run appriopriate code based on the swing step
-    ;draw the ball
-    ld h, HIGH(wBallY) ;high byte of all the ball's attributes
-    call DrawBallOnGreen
-    ;ld b, b ; Not Implemented
-    jp UpdateBallPhysics
 
 SECTION "swing HRAM", HRAM
 hTerrainType:: ;holds the terrain ID that the ball is over
