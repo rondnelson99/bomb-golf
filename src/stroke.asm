@@ -166,17 +166,24 @@ Physics: ; runs every frame until the ball stops moving
 .onGreen
     
 
-    ;check if the velocity is zero
-    ld hl, wBallVY
-    ld a, [hl+]
-    or [hl]
-    ld l, LOW(wBallVX)
-    or [hl]
-    inc l
-    or [hl]
+    ; check if the velocity is extremely low (X and Y magnitude both less than 1/16 px/frame)
+    ; this means that both the high bytes of X and Y velocity are either 0 or FF
+    ld hl, wBallVY + 1
 
+    ld a, [hl]
+    inc a
+    and %11111110 ; sets z flag if the high byte of Y velocity is 0 or FF
+    
+    jr nz, DontFinishSwing
+
+    ld l, LOW(wBallVX + 1)
+    ld a, [hl]
+    inc a
+    and %11111110 ; sets z flag if the high byte of X velocity is 0 or FF
+ 
     jr z, FinishSwing
 
+DontFinishSwing:
     ret
 
 

@@ -220,6 +220,8 @@ SECTION "Square Root Table", ROM0, ALIGN[9]
 
 SqrtTable::
     FOR I, 0, 511.0, 1.0 ;the last byte would never be used since $FF + $FF = $1FE
+        ; db sqrt(I * 128^2 / 255)
+        ; or equivalently, 128 * sqrt(I / 255)
         db floor( pow( mul(pow(128.0,2.0), div(I,255.001)) ,0.5))>>16 ;the .001 is a dirty hack to stay within the 16.16 range these constants use
     ENDR
 
