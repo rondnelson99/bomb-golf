@@ -521,19 +521,30 @@ Grounded:
 
     call SignedATimesC
 
-    ;now hl contains the X friction, which will be subtracted from wBallVX
-    dec e
+    dec e ; de points to wBallVX
+
+    ; Our registers are now in this state:
+    ; a and b are trash
+    ; c contains the vector magnitude, which we need to preserve
+    ; de points to wBallVX
+    ; hl contains the X friction, which will be subtracted from wBallVX
+    
     ld a, [de]
     sub l
     ld [de], a 
     inc e
     ld a, [de]
+    ld b, a ; save the high byte of the velocity to compare signs
     sbc h
     ld [de], a 
-    jr nz, .noClampX
-    ;if the sign changed, clamp the whole word to 0 since the low byte is ignored when adding the velocities anyways.
+
+    xor b
+    rla ; check if the sign changed
+    jr nc, .noClampX
+    ;if the sign changed, clamp the whole word to 0.
 .clampX
     xor a
+    ld [de], a
     dec e
     ld [de], a
     inc e ;gotta leave e with the same value it would have otherwise
@@ -552,19 +563,24 @@ Grounded:
     ld [de], a 
     inc e
     ld a, [de]
+    ld b, a ; save the high byte of the velocity to compare signs
     sbc h
     ld [de], a
-    jr nz, .noClampY
+
+    xor b
+    rla ; check if the sign changed
+    jr nc, .noClampY
     ;if the sign changed, clamp the whole word to 0 since the low byte is ignored when adding the velocities anyways.
 .clampY
     xor a
+    ld [de], a
     dec e
     ld [de], a
     inc e ;gotta leave e with the same value it would have otherwise
 .noClampY
 
 
-    ; now, de still points to the ball variable are, but not hl. 
+    ; now, de still points to the ball variable area, but not hl. 
     
 
     ret
