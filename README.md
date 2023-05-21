@@ -1,60 +1,46 @@
-# gb-starter-kit
+# bomb-golf
 
-A customizable and ready-to-compile bundle for Game Boy RGBDS projects. Contains your bread and butter, guaranteed 100% kitchen sink-free.
+A golf game for the original Game Boy
 
-## Downloading
+## What does it do?
 
-Downloading this repository requires some extra care, due to it using submodules. (If you know how to handle them, nothing more is needed.)
+The game is very incomplete currently. Right now, it drops you in a course, and you can take swings, interact with some terrain, and curve your shot. On the green, your shots become more precise, but now there are slopes to contend with.
 
-### Use as a template
+## Where are the bombs?
+Currently, there are no bombs. To give you the full story, I'll tell you how this game was imagined:
 
-You can [make a new repository using this one as a template](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) or click the green "Use this template" button near the top-right of this page.
+Nintendo's 'Golf' on the NES is really simple, which makes it fun to play with friends in local multiplayer, even if just by passing a phone around. It's got some neat ideas too: you're intentionally restricted to 16-direction aiming, but if you mistime your shot, the ball will curve. I like how it's possible to intentionally do this to aim more precisely than would otherwise be posssible, and I've recreated that here. The only problem? It's kinda boring... 
 
-### Cloning
+The vision for bomb-golf was to keep those great things about NES Golf (simplicity, pass & play multiplayer, neat shot mechanics) and add a heavy dose of chaos to the mix with bombs. Each player would be given a number of bombs that they could hit using the same golf mechanics as with regular bombs. There would not only knock opponents from their position, but also leave massive software-rendered craters as enviornmental hazards.
 
-If cloning this repo from scratch, make sure to pass the `--recursive` flag to `git clone`; if you have already cloned it, you can use `git submodule update --init` within the cloned repo.
+Will these things ever get implemented? Idk, probably not...
 
-If the project fails to build, and either `src/include/hardware.inc/` or `src/include/rgbds-structs/` are empty, try running `git submodule update --init`.
+# Setting up
 
-### Download ZIP
+This project has way too many build dependencies. You'll need:
+ - RGBDS (at least version 0.6.0)
+ - make
+ - Python 3
+ - superfamiconv (TODO: investivate whether this is still nescessary with new RGBGFX features)
+ - tmxrasterizer (a utility bundled with Tiled)
+ - idk maybe I'm forgetting something. Let me know if you have troubles.
 
-You can download a ZIP of this project by clicking the "Code" button next to the aforementioned green "Use this template" one. The resulting ZIP will however not contain the submodules, the files of which you will have to download manually.
-
-## Setting up
-
-Make sure you have [RGBDS](https://github.com/rednex/rgbds), at least version 0.4.0, and GNU Make installed. Python 3 is required for most scripts in the `src/tools/` folder.
-
-## Customizing
-
-Edit `project.mk` to customize most things specific to the project (like the game name, file name and extension, etc.). Everything has accompanying doc comments.
-
-Everything in the `src` folder is the source, and can be freely modified however you want. The basic structure in place should hint you at how things are organized. If you want to create a new "module", you simply need to drop a `.asm` file in the `src` directory, name does not matter. All `.asm` files in that root directory will be individually compiled by RGBASM.
-
-There is "basic" code in place, but some things need your manual intervention. Things requiring manual intervention will print an error message describing what needs to be changed, and a line number.
-
-The file at `src/res/build_date.asm` is compiled individually to include a build date in your ROM. Always comes in handy, and displayed in the bundled error handler.
-
-If you want to add resources, I recommend using the `src/res` folder. Add rules in the Makefile; there are several examples.
-
-It is recommended that the start of your code be in `src/intro.asm`.
 
 ## Compiling
 
 Simply open you favorite command prompt / terminal, place yourself in this directory (the one the Makefile is located in), and run the command `make`. This should create a bunch of things, including the output in the `bin` folder.
 
-While this project is able to compile under "bare" Windows (i.e. without using MSYS2, Cygwin, etc.), it requires PowerShell, and is sometimes unreliable. You should try running `make` two or three times if it errors out.
+I use WSL to compile the project on my machine. If you're on Windows, I'd recommend that too.
 
-If you get errors that you don't understand, try running `make clean`. If that gives the same error, try deleting the `deps` folder. If that still doesn't work, try deleting the `bin` and `obj` folders as well. If that still doesn't work, you probably did something wrong yourself.
+If you get errors that you don't understand, try running `make clean`. If that gives the same error, try deleting the `deps` folder. If that still doesn't work, try deleting the `bin` and `obj` folders as well. If that still doesn't work, ask me, I pobably messed up.
 
 ## See also
+This is based on the amazing gb-starter-kit by ISSOtm. I'd highly recommend it for any Game Boy project.
 
-If you want something more barebones, check out [gb-boilerplate](https://github.com/ISSOtm/gb-boilerplate).
+I recommend the Emulicious emulator for developing and testing, the debugging features are amazing, and it's extremely accurate.
 
-Perhaps [a gbdev style guide](https://gbdev.io/guides/asmstyle) may be of interest to you?
-
-I recommend the [BGB](https://bgb.bircd.org) emulator for developing ROMs on Windows and, via Wine, Linux and macOS (64-bit build available for Catalina). [SameBoy](https://github.com/LIJI32/SameBoy) is more accurate, but has a much worse interface outside of macOS.
-
-### Libraries
-
-- [Variable-width font engine](https://github.com/ISSOtm/gb-vwf)
-- [structs in RGBDS](https://github.com/ISSOtm/rgbds-structs)
+I used a lot of other tools including:
+ - PB8 and PB16 compression by PinoBatch
+ - The Title Checksum Hack (titchack.py) by Basxto
+ - `romusage` by bbbbbr
+ and probably more. You're all awesome!
