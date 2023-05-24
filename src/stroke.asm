@@ -101,7 +101,7 @@ UpdateSwing:: ;called from main loop during a swing
 
     ; go to the next swing step. This is aiming, unless the player is on the green, in which case it's physics
     ldh a, [hGameState]
-    and GREEN_FLAG
+    and GREEN_VIEW_FLAG
     jr nz, .onGreen
 .notGreen
     ld a, SWING_STEP_AIM
@@ -159,7 +159,7 @@ Physics: ; runs every frame until the ball stops moving
 
     ; if we're not on the green right now, scroll to the ball
     ldh a, [hGameState]
-    and GREEN_FLAG
+    and GREEN_VIEW_FLAG
     jr nz, .onGreen
     ld hl, wBallY 
     call ScrollToSprite124
@@ -199,6 +199,8 @@ FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
 
 SECTION "swing HRAM", HRAM
 hTerrainType:: ;holds the terrain ID that the ball is over
+    db
+hOldTerrainType:: ;holds the terrain ID that the ball was over last frame
     db
 hSwingStep: ; 0 = power, 1 = aim, 2 = physics
     db

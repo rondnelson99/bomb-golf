@@ -92,11 +92,12 @@ ENDR
 
 
 	; Any time during Gameplay, pressing Select will toggle the green view
-	ld a, [hPressedKeys]
-	bit PADB_SELECT, a
-	call nz, ToggleGreen
+	; the game also automatically switches to green when the ball passe over it
+	call CheckToggleGreen
 
 	; Any time during Gameplay, we update the terrain variable
+	ldh a, [hTerrainType]
+	ldh [hOldTerrainType], a
 	ld hl, wBallY
 	call LookUpTerrain
 	ldh [hTerrainType], a
@@ -115,7 +116,7 @@ ENDR
 	ldh a, [hGameState]
 
 	rra ; rotate green flag into carry
-	assert GREEN_FLAG == %00000001
+	assert GREEN_VIEW_FLAG == %00000001
 	jr c, .green
 	; if not green, then we're on the course
 	call DrawBall
@@ -125,7 +126,7 @@ ENDR
 .doneGreen
 
 	ldh a, [hGameState]
-	cp GREEN_FLAG ; check for on-green idling
+	cp GREEN_VIEW_FLAG ; check for on-green idling
 	jr nz, .notOnGreenIdle
 	call ProcessAimCursor
 .notOnGreenIdle
@@ -136,6 +137,7 @@ ENDR
 	call CheckScrolling
 	call CheckAiming
 .notOffGreenIdle
+
 
 .doneMainLoop
 
@@ -171,9 +173,7 @@ The bits are as follows:
 other bits are unused 
 */
 hGameState:: db
-GREEN_FLAG  equ %00000001
-GREEN_FLAGB equ 0
+GREEN_VIEW_FLAG  equ %00000001
 STROKE_FLAG equ %00000010
-STROKE_FLAGB equ 1
-EXPORT GREEN_FLAG, STROKE_FLAG
+EXPORT GREEN_VIEW_FLAG, STROKE_FLAG
 

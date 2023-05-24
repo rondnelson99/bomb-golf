@@ -1,15 +1,58 @@
 INCLUDE "defines.asm"
 
 SECTION "Toggle Green", ROM0
+CheckToggleGreen::
+    ; Any time during Gameplay, pressing Select will toggle the green view
+	; the game also automatically switches to green when the ball passse over it
+    ld a, [hPressedKeys]
+	bit PADB_SELECT, a
+	jr nz, ToggleGreen
+
+    ; now, we toggle green if: 
+    ; the ball is on green now, and wasn't last frame AND we're not looking at the green
+    ; OR
+    ; the ball is not on green now, and was last frame AND we're looking at the green
+    
+    ; first, check whether the ball is on the green, both this frame and last
+    ld bc, 0  ; b=1 if ball is on green, c=1 if ball was on green last frame
+    ldh a, [hTerrainType] 
+    cp TERRAIN_GREEN_STEEP_RIGHT
+    jr c, .nowOffGreen
+    inc b
+    assert MAX_TERRAIN_TYPE == TERRAIN_GREEN
+.nowOffGreen
+    ldh a, [hOldTerrainType]
+    cp TERRAIN_GREEN_STEEP_RIGHT
+    jr c, .wasOffGreen
+    inc c
+.wasOffGreen
+
+    ; now, that we have b and c set, we can perform our check
+    ; don't switch if b==c
+    ld a, b
+    cp c
+    ret z
+
+    ; if b != c then switch only if we're not looking at the green 
+    ; (b != GREEN_VIEW_FLAG of hGameState)
+    ldh a, [hGameState] 
+    assert GREEN_VIEW_FLAG == %00000001
+    and ~GREEN_VIEW_FLAG ; zero all bits except the green bit
+    cp b
+
+    ret z ; if we're looking where we should, then don't switch
+
+    ;otherwise, fall through to ToggleGreen
+
 ToggleGreen:: ; Called when the user presses select during the main game
     call ClearOAM
     
     ldh a, [hGameState]
-    xor GREEN_FLAG ; toggle the green bit
+    xor GREEN_VIEW_FLAG ; toggle the green bit
     ldh [hGameState], a
 
     ; Now set the appropriate LYC table
-    and GREEN_FLAG ; zero all bits except the green bit
+    and GREEN_VIEW_FLAG ; zero all bits except the green bit
     jr z, .switchToMainScreen
 
 .switchToGreen

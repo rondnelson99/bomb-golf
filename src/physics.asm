@@ -467,25 +467,22 @@ Grounded:
     assert TERRAIN_NONE == 0
     jr z, .terrainNormal
     dec a
-    assert TERRAIN_GREEN == 1
-    jr z, .terrainGreen
-    dec a
-    assert TERRAIN_OOB == 2
+    assert TERRAIN_OOB == 1
     jr z, .terrainOOB
     dec a
     jr z, .terrainBunker ; temporary since water will eventually be handled differently
     dec a
-    assert TERRAIN_BUNKER == 4
+    assert TERRAIN_BUNKER == 3
     jr z, .terrainBunker
 
     ; if the terrain is between $50 and $5F, it is a green slope, so it has the same friction as regular green
-
+    ; if it is actually $60, then it's just regular green
     assert TERRAIN_GREEN_STEEP_RIGHT == $50
-    assert TERRAIN_GREEN_SLOPE_UP_RIGHT == $5F
+    assert TERRAIN_GREEN == $60
     ldh a, [hTerrainType]
     cp TERRAIN_GREEN_STEEP_RIGHT
     error c
-    cp TERRAIN_GREEN_SLOPE_UP_RIGHT
+    cp TERRAIN_GREEN + 1
     error nc
 
     jr .terrainGreen
