@@ -245,3 +245,32 @@ GetVectorMagnitude:: ;uses pythagorean theorem and square/sqrt tables
 
     ret
 
+SECTION "Convert to Decimal", ROM0
+
+; Converts an 8-bit value to decimal. From @PinoBatch
+; Param A the value
+; returns A: tens and ones digits; B[1:0]: hundreds digit;
+; B[7:2]: unspecified
+AtoBCD::
+
+    swap a
+    ld b,a
+    and $0F  ; bits 3-0 in A, range $00-$0F
+    or a     ; for some odd reason, AND sets half carry to 1
+    daa      ; A=$00-$15
+  
+    sla b
+    adc a
+    daa
+    sla b
+    adc a
+    daa      ; A=$00-$63
+    rl b
+    adc a
+    daa
+    rl b
+    adc a
+    daa
+    rl b
+    ret
+

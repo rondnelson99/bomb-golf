@@ -19,12 +19,23 @@ NB_SPRITES equ 40
 
 ; I generally discourage the use of pseudo-instructions for a variety of reasons,
 ; but this one includes a label, and manually giving them different names is tedious.
+; this gives 16 cycles of guaranteed VRAM access time
 MACRO wait_vram
 .waitVRAM\@
 	ldh a, [rSTAT]
 	and STATF_BUSY
 	jr nz, .waitVRAM\@
 ENDM
+
+ ; an alternative which clobbers hl rather than a.
+ ; this one gives 17 cycles of VRAM time
+MACRO wait_vram_hl 
+ld hl, rSTAT
+.waitVRAM\@
+	bit STATB_BUSY, [hl]
+	jr nz, .waitVRAM\@
+ENDM
+
 
 ; `ld b, X` followed by `ld c, Y` is wasteful (same with other reg pairs).
 ; This writes to both halves of the pair at once, without sacrificing readability

@@ -70,6 +70,10 @@ SECTION "status bar tilemap", ROM0
 StatusBarTilemap:
     INCBIN "res/statusbar.maintileset.tilemap.pb8"
 
+; some defines for tile locations
+TILEMAP_SCORE equ $9C12
+EXPORT TILEMAP_SCORE
+
 
 
 

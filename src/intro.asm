@@ -38,6 +38,7 @@ DisableScreen:
 	;init other stuff
 	call InitStatusBar
 	call InitAimArrow
+	call InitScore
 
 	; set the green corrdinates
 	ld a, LOW((19 * 8) << 4)

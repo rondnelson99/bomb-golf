@@ -190,6 +190,10 @@ DontFinishSwing:
 
 
 FinishSwing: ;I'll wrap up whatever here like incrementing the player's score.
+
+    ; increment the player score
+    call IncrementScore
+
     ; clear the swing bit of the game state
     ldh a, [hGameState]
     and ~ STROKE_FLAG
