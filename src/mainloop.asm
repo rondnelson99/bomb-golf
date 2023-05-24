@@ -107,58 +107,42 @@ ENDR
 	jr z, .notStroke
 .stroke
 	call UpdateSwing
-	jr .done
+	jr .doneStroke
 .notStroke
 	call CheckSwing
-.done
-	
+
+.doneStroke
 	ldh a, [hGameState]
 
-	cp a, 0 ; neither green nor stroke
-	jr nz, .notIdleCourse
-	call IdleCourse
-	jr .doneMainLoop
-
-.notIdleCourse
-	cp a, STROKE_FLAG ; off-green stroke
-	jr nz, .notOffGreenStroke
+	rra ; rotate green flag into carry
+	assert GREEN_FLAG == %00000001
+	jr c, .green
+	; if not green, then we're on the course
 	call DrawBall
-	jr .doneMainLoop
-	
-
-.notOffGreenStroke
-	cp a, GREEN_FLAG ; on-green idle view
-	jr nz, .notIdleGreen
-	call GreenFunctions
-	jr .doneMainLoop
-
-.notIdleGreen
-	cp a, GREEN_FLAG  | STROKE_FLAG ; on-green stroke
-	error nz ; crash if we're in an invalid state
+	jr .doneGreen
+.green
 	call DrawBallOnGreen
-	jr .doneMainLoop
+.doneGreen
+
+	ldh a, [hGameState]
+	cp GREEN_FLAG ; check for on-green idling
+	jr nz, .notOnGreenIdle
+	call ProcessAimCursor
+.notOnGreenIdle
+
+	ldh a, [hGameState]
+	and a ; cp 0 ; check for off-green idling
+	jr nz, .notOffGreenIdle
+	call CheckScrolling
+	call CheckAiming
+.notOffGreenIdle
 
 .doneMainLoop
-
-
 
 	ld a, HIGH(wShadowOAM) ;queue OAM DMA
 	ldh [hOAMHigh], a
 	rst WaitVBlank
 	jp MainLoop
-
-SECTION "Idle course functions", ROM0
-IdleCourse:
-	call CheckScrolling
-
-	
-
-	;Process objects
-	;call ProcessCrosshair
-	call DrawBall
-	jp CheckAiming ;tail call
-
-
 
 SECTION "Main Loop HRAM", HRAM
 ; Keys that are currently being held, and that became held just this frame, respectively.

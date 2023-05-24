@@ -25,20 +25,6 @@ ToggleGreen:: ; Called when the user presses select during the main game
 	ldh [hLYCTableHigh], a
     ret
 
-SECTION "Green Funcitons", ROM0
-
-
-GreenFunctions:: ; Called every frame when idling on the green
-
-    ;draw the ball
-    ld h, HIGH(wBallY) ;high byte of all the ball's attributes
-    call DrawBallOnGreen
-
-    jp ProcessAimCursor ; tail call
-
-
-
-
 
 
 SECTION "render sprite 12.4 On Green", ROM0
