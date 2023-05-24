@@ -10,8 +10,8 @@ GREEN_FRICTION equ 150 ;friction strength for the green
 OOB_FRICTON equ 300 ;friction strength for OOB areas
 AIM_COEFFICIENT equ 0.2 ;defines the strength of the curve acceleration
 CURVE_REDUCTION_COEFFICIENT equ 0.9 ;the curve accelerations are multiplied by this every frame when the ball is grounded
-STEEP_ACCELERATION_STRENGTH  equ 2.0 ;the strength of the "steep" slope acceleration (0-8)
-SLOPE_ACCELERATION_STRENGTH equ 1.5 ;the strength of the "slope" slope acceleration (0-8)
+STEEP_ACCELERATION_STRENGTH  equ 1.0 ;the strength of the "steep" slope acceleration (0-8)
+SLOPE_ACCELERATION_STRENGTH equ 0.5 ;the strength of the "slope" slope acceleration (0-8)
 
 SECTION "Init Ball Physics", ROM0
 InitBallPhysics:: ; use the aiming and power to get initial values for X, Y and Z velocities
