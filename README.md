@@ -11,7 +11,7 @@ Currently, there are no bombs. To give you the full story, I'll tell you how thi
 
 Nintendo's 'Golf' on the NES is really simple, which makes it fun to play with friends in local multiplayer, even if just by passing a phone around. It's got some neat ideas too: you're intentionally restricted to 16-direction aiming, but if you mistime your shot, the ball will curve. I like how it's possible to intentionally do this to aim more precisely than would otherwise be posssible, and I've recreated that here. The only problem? It's kinda boring... 
 
-The vision for bomb-golf was to keep those great things about NES Golf (simplicity, pass & play multiplayer, neat shot mechanics) and add a heavy dose of chaos to the mix with bombs. Each player would be given a number of bombs that they could hit using the same golf mechanics as with regular bombs. There would not only knock opponents from their position, but also leave massive software-rendered craters as enviornmental hazards.
+The vision for bomb-golf was to keep those great things about NES Golf (simplicity, pass & play multiplayer, neat shot mechanics) and add a heavy dose of chaos to the mix with bombs. Each player would be given a number of bombs that they could hit using the same golf mechanics as with regular bombs. They would not only knock opponents from their position, but also leave massive software-rendered craters as enviornmental hazards.
 
 Will these things ever get implemented? Idk, probably not...
 
